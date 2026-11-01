@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>花纹实验室 · 斑点与条纹</title>
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#f2f4ef,#111b19);--panel:light-dark(#ffffff,#1a2824);--text:light-dark(#182e27,#e5eee9);--muted:light-dark(#52665d,#b0c2b7);--line:light-dark(#d6e1d8,#395047);--accent:light-dark(#20664c,#8ed9b7)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,sans-serif}main{max-width:1060px;margin:auto;padding:32px 22px}h1{font-size:30px;line-height:1.2;margin:8px 0 12px;font-weight:600}p{margin:8px 0}.eyebrow{color:var(--accent);letter-spacing:.12em;font-size:12px}header{margin-bottom:25px}.muted,small{color:var(--muted)}.layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,1fr);gap:24px}.field{min-width:0}canvas{display:block;width:100%;aspect-ratio:1;background:#f3dfab;border-radius:16px;image-rendering:pixelated}aside{background:var(--panel);padding:24px;border-radius:16px;min-width:0}.control{margin-bottom:28px}label{display:flex;justify-content:space-between;gap:8px;font-weight:600}output{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--accent)}input[type=range]{width:100%;min-height:44px;accent-color:var(--accent);margin:8px 0 0}small{display:block;font-size:13px}button{font:inherit;padding:10px 14px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--text);cursor:pointer;min-height:44px}button:hover{border-color:var(--accent)}button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}.buttons{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.caption{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;margin-top:9px;color:var(--muted)}details{margin-top:22px;border-top:1px solid var(--line);padding-top:16px;font-size:14px}summary{cursor:pointer}code{overflow-wrap:anywhere}footer{font-size:13px;color:var(--muted);margin-top:22px}a{color:var(--accent)}@media(max-width:720px){main{padding:22px 16px}.layout{grid-template-columns:1fr;gap:16px}aside{padding:20px}h1{font-size:26px}.control{margin-bottom:18px}}
+/* Smooth high-DPI display; the numerical grid is unchanged. */
+canvas{image-rendering:auto}button[hidden]{display:none}button[aria-pressed=true]{background:var(--accent);color:var(--panel)}select{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px;max-width:100%;min-height:44px}button:disabled{opacity:.5;cursor:default}.playback{margin-top:18px}.field{position:sticky;top:20px;align-self:start}@media(max-width:720px){.field{position:static}}
+.layout{align-items:start}.field{position:static}.simulation-view{width:50%;min-width:min(260px,100%)}.equations{margin-top:22px;border-top:1px solid var(--line);padding-top:20px}.equations h2{font-size:21px;margin:0 0 10px}.equations h3{font-size:16px;margin:18px 0 8px}.equation{font-size:15px;font-family:ui-monospace,monospace;overflow-wrap:anywhere;background:var(--panel);padding:12px;border-radius:8px}.terms{margin:10px 0;padding-left:20px;font-size:14px}.terms li{margin:6px 0}.parameter-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:12px}.parameter-table td,.parameter-table th{padding:9px 7px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}.parameter-table th{font-weight:600}.parameter-table td:first-child{width:25%}#parameterSummary{font-size:14px;color:var(--accent)}@media(max-width:720px){.simulation-view{width:100%;max-width:310px;margin:0 auto}.equations h2{font-size:20px}}
+.simulation-view{width:100%;max-width:none}
+.learning{margin-top:28px}.learning h3{line-height:1.5}.learning .takeaway{border-left:3px solid var(--accent);padding:4px 0 4px 14px;margin:14px 0}.learning details>summary{line-height:1.6}.learning .matrix{display:inline-grid;grid-template-columns:1fr 1fr;gap:5px 18px;vertical-align:middle;border-left:1px solid var(--line);border-right:1px solid var(--line);padding:6px 10px;margin:5px}.learning .matrix span{overflow-wrap:anywhere}.learning .equation{margin:10px 0}.learning .parameter-table td:first-child{width:28%}.learning .source-links{font-size:13px;color:var(--muted);margin-top:18px}
+.experiment-nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 0;margin-bottom:20px;background:var(--bg);border-bottom:1px solid var(--line);font-size:14px}.experiment-nav a{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;font-weight:600}.experiment-nav span{color:var(--muted)}
+</style>
+<main>
+<nav class="experiment-nav" aria-label="实验导航"><a data-fun-home href="index.html">← 返回 复杂系统实验室</a><span>实验 01 · 斑点与条纹</span></nav>
+<header><span class="eyebrow">PATTERN LAB / 04</span><h1>看花纹慢慢长出来</h1><p class="muted">斑点、条纹与迷宫 · 大画面、小计算区域 · 速度 0–1000</p></header>
+<div class="layout"><section class="field" aria-label="仿真与公式说明"><div class="simulation-view"><canvas id="pattern" width="112" height="112" role="img" aria-label="激活场的相对活性随时间演化；深色表示高活性，浅色表示低活性">反应—扩散数值仿真</canvas><div class="caption"><span id="colorNote">清晰花纹 · 固定高对比色标（仅改变显示）</span><span id="clock">t = 0 · 112 × 112</span></div></div><div class="buttons"><button id="pause" type="button">暂停</button><button id="replay" type="button">从头重播</button><button id="finish" type="button">快进看结果</button></div>
+<section class="equations" aria-labelledby="equationHeading"><h2 id="equationHeading">两条公式在做什么？</h2><p><strong>u 是激活场，v 是抑制场。</strong>它们是相对活性，可以正也可以负；深色表示 u 较高，不是直接给皮肤染色。</p>
+<h3>① 激活场：自己增强，也受到限制</h3><div class="equation">∂u/∂t = 0.1(u − u³ − v + b) + Dᵤ∇²u</div>
+<ul class="terms"><li><strong>∂u/∂t</strong>：这里的激活程度随时间变化得多快。</li><li><strong>＋u</strong>：在零附近提供局部正反馈，放大微小差异。</li><li><strong>−u³</strong>：活性变大后限制振幅，避免正负两边无限放大。</li><li><strong>−v</strong>：抑制场升高，会压低这里的 u。</li><li><strong>＋b</strong>：反应偏置，对应第一个滑杆；接近 0 时两类区域较平衡，偏离 0 更容易形成斑点或反色斑点。</li><li><strong>Dᵤ∇²u</strong>：激活场向周围扩散。邻域平均比这里高就补进来，比这里低就向外流。</li></ul>
+<h3>② 抑制场：被激活产生，逐渐衰减，也会传播</h3><div class="equation">∂v/∂t = 0.2(u − 0.8v) + Dᵥ∇²v</div>
+<ul class="terms"><li><strong>＋u</strong>：u 升高会推动 v 增加。</li><li><strong>−0.8v</strong>：v 自身逐渐回落；连同外面的 0.2，实际衰减项是 −0.16v。</li><li><strong>Dᵥ∇²v</strong>：抑制场扩散，本页始终比激活场快，能影响更远的区域。</li></ul>
+<p><strong>把两式连起来：</strong>u 升高 → 推动 v 增加 → v 反过来压低 u。再加上两者传播范围不同，就可能留下有间距的花纹。</p>
+<h3>参数之间的对应关系</h3><p id="parameterSummary">当前：b = 0.000；r = 20.0；Dᵤ = 0.16；Dᵥ = 3.20。</p>
+<table class="parameter-table"><thead><tr><th>参数</th><th>在本页的作用</th></tr></thead><tbody><tr><td>b</td><td>可调偏置 −0.12～0.12；影响两类区域的平衡和图案类型，不是“增强强度”。</td></tr><tr><td>Dᵤ = 0.16</td><td>固定的激活场扩散系数。</td></tr><tr><td>r = Dᵥ/Dᵤ</td><td>第二个滑杆实际调 r，范围 4～32；Dᵥ = 0.16r，显示的是同一时间下的扩散长度比 √r。</td></tr><tr><td>0.1、0.2</td><td>固定的局部反应速率系数，不是扩散系数；不等于整个图案简单按两倍速度生长。</td></tr><tr><td>0.8</td><td>固定的 v 衰减系数，和外面的 0.2 一起作用。</td></tr><tr><td>演化速度</td><td>只改变每秒计算多少个小步，不改变这两条方程，也不放大数值步长。</td></tr></tbody></table>
+<h3>四个预设为什么不同？</h3><p>迷宫、平行与斜向条纹都用 <strong>b = 0、r = 20</strong>；后两者额外加入微弱的定向初始扰动。斑点预设用 <strong>b = 0.12、r = 20</strong>，只有随机扰动。因此方向不单由两个滑杆决定；这些是本页验证过的教学示例，不是动物实测参数。</p>
+<p class="muted">图已恢复大画面，计算仍保留较小的 56 × 56 区域和 112 × 112 个点，间距 0.5。相对早先的大计算区，点数仍少四分之三；显示放大不会增加物理细节，也不增加计算点。小区域可容纳的条纹数量与允许波长和大区域不同。</p></section>
+<section class="equations learning" id="modelling-guide" aria-labelledby="modellingHeading"><h2 id="modellingHeading">从二维建模，到小扰动与空间模态</h2>
+<p class="takeaway"><strong>线性分析告诉我们：哪些小扰动开始增长。非线性告诉我们：长大后如何受限、竞争，形成什么结构。</strong>花纹不是单靠“非线性很复杂”就能解释，也不是看起来复杂就等于混沌。</p>
+<h3>1．二维不是把 u、v 分别当成 x、y</h3>
+<div class="equation">u = u(x, y, t)，v = v(x, y, t)<br>∇²u = ∂²u/∂x² + ∂²u/∂y²<br>∇²v = ∂²v/∂x² + ∂²v/∂y²</div>
+<p>每个位置同时有一个 u 和一个 v，就像地图上的每个地点同时有温度和湿度。x、y 是位置坐标，u、v 是两个标量场；不是把 u 拆成水平和竖直分量。只有变量本身是速度那样的向量，才需要另外定义水平、竖直分量。</p>
+<p>完整模型不仅要有两条方程，还要指定：区域大小、起始的 u/v 分布，以及边界怎样处理。本页区域为 56 × 56，初始状态为均匀工作点加微小扰动，左右相接、上下相接。</p>
+<details open><summary>2．电脑具体怎样求解？上下左右，再向前一步</summary>
+<p>把平面切成 112 × 112 个网格，每格存 uᵢⱼ、vᵢⱼ 两个数，共 25,088 个状态。空间离散以后，PDE 变成一大组耦合的非线性 ODE，再做时间积分，而不是先找到一条漂亮的解析公式。</p>
+<div class="equation">Lₕuᵢⱼ = (uᵢ₊₁,ⱼ + uᵢ₋₁,ⱼ + uᵢ,ⱼ₊₁ + uᵢ,ⱼ₋₁ − 4uᵢⱼ) / h²</div>
+<p>这叫五点差分：中心和上下左右。邻域平均高于中心就有净流入，低于中心就有净流出。对 v 用同样的算法。</p>
+<div class="equation">uᵢⱼⁿ⁺¹ = uᵢⱼⁿ + Δt [F(uᵢⱼⁿ, vᵢⱼⁿ) + DᵤLₕuᵢⱼⁿ]<br>vᵢⱼⁿ⁺¹ = vᵢⱼⁿ + Δt [G(uᵢⱼⁿ, vᵢⱼⁿ) + DᵥLₕvᵢⱼⁿ]</div>
+<p>其中 F = 0.1(u − u³ − v + b)，G = 0.2(u − 0.8v)；n 是时间步编号，不是空间坐标。本页用显式 Euler 步进，h = 0.5、Δt = 0.01。</p>
+<p><strong>所有下一步值都使用同一份旧状态。</strong>先算到新数组，再整体交换，不能刚更新左边就拿它去更新右边。重复这个过程才成为动画；加速档位只是每秒多算几步。</p>
+<p class="muted">步长不能随意放大。本页最强扩散时 DᵥΔt/h² = 0.2048，小于方格上纯扩散显式格式的 1/4 界限；这只是扩散部分的稳定性检查，不替代对完整非线性系统及网格、时间步长的收敛检查。</p>
+</details>
+<details open><summary>3．“小东西”是什么？可以是一点点活性，也可以是一种空间波</summary>
+<p>先找均匀工作点 (u₀, v₀)：每个位置相同，扩散项为零，且 F = G = 0。本模型满足：</p>
+<div class="equation">v₀ = 1.25u₀，u₀³ + 0.25u₀ = b<br>u = u₀ + δu，v = v₀ + δv</div>
+<p>δu、δv 就是微小偏差。随机噪声可以看成很多不同波长、方向的空间波叠加；水平、斜向的初始提示则偏重其中某些方向。</p>
+<p>如果初始状态完全均匀、精确停在工作点上，理想方程不会凭空选出一个斑点。本页主动加入微小初始扰动来触发演化；之后没有持续加入随机驱动。实际实验中的微扰与计算中的舍入误差，也可能成为不稳定模态的种子。</p>
+<div class="equation">空间形状：cos(kₓx + kᵧy)<br>波长 ℓ = 2π / √(kₓ² + kᵧ²)</div>
+<p>kₓ、kᵧ 共同决定波的尺度和方向。图案的条带沿等相位线延伸，波矢方向与条带垂直。这里说的“模态”，不是单个像素，而是一种覆盖空间的扰动形状。</p>
+<p class="takeaway">同一个小扰动，若落在会衰减的模态上，就慢慢消失；若包含会增长的模态，那部分就被放大。<strong>不是所有小误差都会导致完全不同的结果。</strong></p>
+</details>
+<details><summary>4．用控制系统的语言：每个空间模态都有自己的“极点”</summary>
+<p>在工作点附近线性化，先忽略高阶扰动。两种场的反应 Jacobian 为：</p>
+<div class="equation">J = <span class="matrix" role="math" aria-label="二乘二矩阵：第一行0.1乘1减3u0平方、负0.1；第二行0.2、负0.16"><span>0.1(1 − 3u₀²)</span><span>−0.1</span><span>0.2</span><span>−0.16</span></span></div>
+<p>加入空间波后，令 q = kₓ² + kᵧ²，每个模态的两种振幅组成向量 a，其早期演化满足：</p>
+<div class="equation">da/dt = A(q)a<br>A(q) = J − q · diag(Dᵤ, Dᵥ)<br>模态振幅 ∝ exp[λ(q)t]</div>
+<p>λ(q) 是 A(q) 的特征值。实部负，扰动衰减；实部正，扰动增长；虚部对应振荡。因此你熟悉的特征值、极点和稳定性工具仍然有用，只是现在要对不同空间波长分别看。</p>
+<p>若有特征值实部恰好为零，线性化往往不足以判定完整非线性系统的稳定性，需要继续检查高阶项与临界条件。</p>
+<h3>一个直接代入本页方程的例子</h3>
+<p><strong>仅针对 b = 0、r = 20：</strong>工作点是 u₀ = v₀ = 0。不考虑空间变化时，J 的迹为 −0.06、行列式为 0.004，满足实二阶系统的稳定条件“迹 &lt; 0 且行列式 &gt; 0”；单看行列式不够。</p>
+<p>但连续模型取 q = 0.1 时，A(q) 的最大特征值约为 <strong>＋0.046</strong>，这个空间模态会增长。也就是说，均匀的小变化可以衰减，某些有空间起伏的小变化却会被放大——这是扩散驱动失稳的核心。</p>
+<p class="muted">这个数值是上述方程的线性化计算，不是动物实测结果。周期边界只允许特定空间波数；程序还使用离散拉普拉斯，所以实际可用模态及增长率须按网格与区域计算，不能把任意 q 都当成画布上的精确模态。</p>
+</details>
+<details open><summary>5．非线性到底在哪一步变重要？</summary>
+<p>在线性近似里，一个不稳定模态会持续指数增长，它本身不会解释为什么花纹最后停在某个有限振幅。随着扰动长大，−u³ 的影响不能再忽略，它限制幅度，并使不同模态不再能独立叠加。</p>
+<p><strong>线性分析解释“最初谁长得快”；非线性演化决定“长大以后怎样相互影响”。</strong>最终可能出现有限振幅条纹、斑点、缺陷与多种稳定格局，也可能随参数发生振荡或其他行为。最终格局还受初始条件、边界、区域大小影响，不只由某一项决定。</p>
+<p>“换一组随机扰动”改变的是初始空间谱；改 b 或 r 改变的是系统本身。前者可能主要改变条纹位置、方向和分叉，后者可能改变平衡点、可增长的波长或图案类型。靠近失稳或分岔边界时，较小的参数变化也可能带来明显变化。</p>
+</details>
+<details open><summary>6．线性、确定性、稳定与混沌，不是同一个分类</summary>
+<table class="parameter-table"><thead><tr><th>概念</th><th>应当怎样理解</th></tr></thead><tbody><tr><td>线性</td><td>满足叠加原理，分析工具较系统。线性系统同样能出现多模态振荡、共振、暂态放大，以及极点或时延引起的失稳，不能说“线性就不复杂”。</td></tr><tr><td>确定性</td><td>在模型解唯一的前提下，给定同样初始、边界条件与参数，就有相应的确定演化。线性和非线性都可以是确定性的；加入随机驱动则是另一层选择。</td></tr><tr><td>非线性</td><td>不再普遍满足叠加，可能有幅度相关响应、多稳态、分岔、极限环等。非线性不等于随机，也不保证出现混沌。</td></tr><tr><td>混沌</td><td>某些确定性非线性系统中出现的长期非周期行为与敏感依赖等性质。不同起点落入不同的稳定花纹，不足以证明混沌；计算误差导致的杂乱也不是混沌证据。</td></tr></tbody></table>
+<p class="takeaway">你熟悉的线性控制不是“失效”了，而是成为<strong>非线性系统在某个工作点附近的局部分析工具</strong>。从局部稳定性走到有限振幅和全局行为，才需要继续用非线性分析和数值实验。</p>
+</details>
+<details><summary>7．可以怎样在这个页面上做对照？</summary>
+<ol class="terms"><li>固定 b、r，反复“从头重播”：同一初始扰动应给出同样的计算过程。</li><li>只点“换一组随机扰动”：比较位置和分叉，先不要改反应参数。</li><li>再只改 b 或 r：比较形态、间距和增长过程，区分“初始条件改变”和“方程参数改变”。</li><li>暂停后切换清晰／原始显示：图像对比会变，但计算状态不变。</li><li>演化速度只改观看时的推进率。判断模型是否可靠，还应另做网格和步长收敛检查，不能把播放快慢当成物理参数。</li></ol>
+</details>
+<p class="source-links">进一步阅读：<a href="https://lcnwww.epfl.ch/gerstner/SPNM/node22.html" target="_blank" rel="noopener">相平面、线性化与特征值</a> · <a href="https://www.damtp.cam.ac.uk/user/gold/pdfs/teaching/old_literature/Turing1952.pdf" target="_blank" rel="noopener">图灵的反应—扩散原论文</a>。本节的 J、A(q) 和示例数值由本页方程直接推导。</p>
+</section></section>
+<aside><small>先选一个例子，再拖动滑杆比较</small><div class="buttons" role="group" aria-label="花纹示例"><button type="button" data-preset="maze" aria-pressed="true">弯曲／迷宫</button><button type="button" data-preset="parallel" aria-pressed="false">平行条纹</button><button type="button" data-preset="diagonal" aria-pressed="false">斜向条纹</button><button type="button" data-preset="spots" aria-pressed="false">斑点</button></div><small id="initialNote">初始条件：均匀状态加微小随机扰动。</small>
+<div class="control"><label for="gain">斑点 ↔ 条纹：反应偏置 <output id="gainValue">0.000</output></label><input id="gain" type="range" min="-0.12" max="0.12" step="0.005" value="0"><small>接近 0 时两类区域较平衡，易形成条纹；偏离 0 更易成为斑点或反色斑点。不是原版本的“增强强度”。</small></div>
+<div class="control"><label for="reach">抑制传播范围 <output id="reachValue">4.47 倍</output></label><input id="reach" type="range" min="4" max="32" step="0.5" value="20"><small>向右：抑制场扩散更快。显示值为相同时间下的扩散长度比 √(Dᵥ/Dᵤ)；图案间距也受反应参数影响。</small></div>
+<div class="control playback"><label for="speed">演化速度 <output id="speedValue">10 / 1000</output></label><input id="speed" type="range" min="0" max="1000" step="1" value="10"><small>0＝暂停；1–1000＝加速档位，默认 10。提高档位增加计算目标，不放大数值步长；达到硬件上限后不会再明显加快，不保证实际千倍速度。</small></div>
+<div class="control"><label for="display">画面显示</label><select id="display"><option value="clear">清晰花纹 · 边界鲜明</option><option value="raw">原始浓度 · 连续渐变</option></select><small>切换显示不会重算、不改变物理过程。清晰模式提高固定色标的对比，不是增加反应强度。</small></div>
+<p id="state" aria-live="polite">准备生长动画…</p>
+<div class="buttons"><button id="restart" type="button">换一组随机扰动</button><button id="more" type="button" hidden>继续计算至更稳定</button></div>
+<small>默认播放生长过程。改反应参数会重新开始；重播沿用同一份扰动，“换一组”改变随机细节。切到其他标签页会自动暂停。</small>
+<details><summary>清晰度与“基本稳定”</summary><p>计算范围为 56 × 56，112 × 112 个网格点，间距 0.5；数值步长仍为 0.01。速度档位的目标推进率为档位 × 4 个无量纲时间单位／秒，0 档停止推进；受硬件上限限制，不保证实际千倍加速。改速度不重置当前图案，调回正数可从零档暂停处继续。</p><p>清晰模式使用固定高对比映射：把 u ∈ [−0.16, 0.16] 平滑映射到深浅两色，区间外饱和显示。原始模式使用 [−0.8, 0.8] 线性色标。二者均不自动放大初始噪声，也不改变计算场；连续场的柔和边缘不是单纯的像素问题。</p><p>至少演化 400 个无量纲时间单位后，连续 6 个时间窗口（每个约 8）内，两种场的最大逐点变化分别除以自身全场最大绝对值（至少取 1），均小于 0.5%，才标记为基本稳定。这不是永久稳定的数学证明，之后仍可能缓慢漂移。</p><p>动画最多演化到 t = 4000；快进单次最多推进 4000 或计算约 12 秒。尚未稳定会明确提示，可继续演化。</p></details>
+<details><summary>模型与边界</summary><p>FitzHugh–Nagumo 型激活—抑制教学模型。u、v 是可正可负的相对活性，不是绝对化学浓度；不是豹子皮肤的已验证模型。</p><p><code>∂u/∂t = 0.1(u − u³ − v + b) + 0.16∇²u</code><br><code>∂v/∂t = 0.2(u − 0.8v) + Dᵥ∇²v</code></p><p>第一个反应滑杆控制偏置 b；第二个控制扩散比 Dᵥ/Dᵤ。局部正反馈放大扰动，立方项限制振幅，扩散的抑制场参与选定空间尺度。示例只设置参数及初始条件，不加载图片、不添加外部条纹绘制力。周期边界：左右、上下相接；无量纲时间不是实际秒数。</p></details>
+</aside></div>
+<footer>← <a id="funHome" data-fun-home href="index.html">返回 复杂系统实验室</a> · 四分之一区域，同样空间精度 · 高分屏显示 · 本地运行。参考：<a href="https://www.damtp.cam.ac.uk/user/gold/pdfs/teaching/old_literature/Turing1952.pdf" target="_blank" rel="noopener">Turing（1952）</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3925790/" target="_blank" rel="noopener">花纹模式选择</a>。本页参数为教学演示设置。</footer>
+</main><script src="turing.js"></script>
+</html>

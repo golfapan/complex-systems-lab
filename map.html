@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>知识地图 · 复杂系统实验室</title>
+<style>
+:root{color-scheme:light dark;
+--bg:light-dark(#f2f4ef,#101c18);--panel:light-dark(#fff,#1a2b24);--text:light-dark(#233b31,#e3eee6);
+--muted:light-dark(#596d60,#adc4b5);--line:light-dark(#d5dfd5,#3c5949);--soft:light-dark(#e8efe7,#22382e);
+--green:light-dark(#22664c,#a7d8b6);--violet:light-dark(#77557c,#d1addf);
+--c1:light-dark(#77557c,#d6b3e3);--c2:light-dark(#22664c,#9fd6b0);--c3:light-dark(#2f6a9a,#9cc8ee);
+--c4:light-dark(#9a5a14,#f0c084);--c5:light-dark(#a33a5b,#f2a6bd);--c6:light-dark(#4b4f9c,#b9bcf2)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.75 system-ui,-apple-system,sans-serif}
+main{max-width:1180px;margin:auto;padding:24px 24px 60px}
+a{color:var(--green)}
+nav{display:flex;gap:6px 24px;flex-wrap:wrap;margin-bottom:40px}
+nav a{text-decoration:none;font-size:14px;color:var(--text)}
+.eyebrow{letter-spacing:.16em;font-size:12px;color:var(--violet)}
+h1{font-size:clamp(30px,5vw,48px);line-height:1.2;letter-spacing:-.02em;margin:10px 0 14px}
+h2{font-size:25px;line-height:1.4;margin:56px 0 10px}
+h3{font-size:19px;line-height:1.45;margin:0 0 6px}
+p{margin:8px 0}
+.lead{color:var(--muted);max-width:900px}
+.small,.note{font-size:14px;color:var(--muted)}
+.jump{display:flex;gap:8px 20px;flex-wrap:wrap;margin-top:18px;font-size:14px}
+.reading{margin-top:22px}.reading summary{font-weight:650;cursor:pointer}.reading ul{padding-left:22px}
+.searchbar{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:18px 0 6px;font-size:14px}
+.searchbar input{font:inherit;min-width:0;flex:1;max-width:460px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text)}
+[hidden]{display:none!important}a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
+html{scroll-padding-top:20px}.hit:focus-visible{stroke:var(--violet);stroke-opacity:.6;stroke-width:5;outline:none}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px 26px}
+.threads{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:20px}
+.threads .box{padding:18px 20px}
+.threads b{display:block;margin-bottom:4px}
+/* map */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 12px;align-items:center}
+.toolbar button,.chip{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:999px;padding:5px 14px;cursor:pointer;min-height:36px}
+.toolbar button[aria-pressed="true"]{background:var(--text);color:var(--bg);border-color:var(--text)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border-width:2px}
+.chip::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;background:currentColor;vertical-align:0}
+.chip[aria-pressed="true"]{background:color-mix(in srgb,currentColor 14%,var(--panel))}
+.mapwrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+.svgscroll{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:var(--panel)}
+svg{width:100%;min-width:720px;height:auto;display:block}
+.svgscroll.zoom svg{width:1200px;min-width:1200px}
+.cl rect{stroke-width:1.5;stroke-dasharray:4 5}
+.cl text{font-size:15px;font-weight:650;letter-spacing:.04em}
+.edge{stroke:var(--muted);stroke-width:1.5;fill:none;opacity:.32}
+.edge.base{stroke-width:2.4;opacity:.5}
+.edge.on{stroke:var(--text);stroke-width:3;opacity:.95}
+.edge.off{opacity:.06}
+.hit{stroke:transparent;stroke-width:14;cursor:pointer}
+.elab{pointer-events:none;display:none}
+.elab.on{display:block}
+.elab rect{fill:var(--panel);stroke:var(--text);stroke-width:1}
+.elab text{font-size:12.5px;fill:var(--text)}
+.node{cursor:pointer}
+.node rect{stroke-width:1.6}
+.node.base rect{stroke-width:3}
+.node text{font-size:14px;font-weight:600;fill:var(--text)}
+.node.base text.t{font-size:15px}
+.node .sub{font-size:11.5px;font-weight:400;fill:var(--muted)}
+.node.sel rect{stroke-width:4.5}
+.node.off{opacity:.22}
+.node.hide,.edge.hide,.hit.hide{display:none}
+.node:focus{outline:none}.node:focus-visible rect{stroke-width:5}
+.badge{display:none}
+.showorder .badge{display:block}
+.badge circle{fill:var(--text)}
+.badge text{fill:var(--bg);font-size:12px;font-weight:700}
+#panel{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto}
+#panel ul{padding-left:18px;margin:8px 0}
+#panel li{margin:8px 0}
+.tagc{display:inline-block;font-size:12px;border:1.5px solid currentColor;border-radius:999px;padding:0 9px;margin:0 0 6px}
+/* table */
+.tablewrap{overflow-x:auto;margin-top:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:900px;font-size:14px;line-height:1.55}
+th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--soft);font-weight:600}
+tr:last-child td{border-bottom:none}
+td:first-child{white-space:nowrap;font-weight:600}
+tr.grp td{background:var(--soft);font-size:13px;letter-spacing:.06em;font-weight:650}
+/* cards */
+.clhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:38px 0 4px;padding-bottom:6px;border-bottom:2px solid currentColor}
+.clhead h3{font-size:21px;margin:0}
+.clhead p{margin:0;color:var(--muted);font-size:14px}
+.cards{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin-top:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px 26px;border-left:6px solid currentColor;color:inherit}
+.card>*{color:var(--text)}
+.card .num{font-size:12px;letter-spacing:.12em;color:var(--violet)}
+.card .eq{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13.5px;background:var(--soft);border-radius:10px;padding:8px 12px;margin:10px 0;overflow-x:auto;white-space:nowrap}
+.grid3{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:22px;margin-top:8px}
+.grid2{display:grid;grid-template-columns:1.6fr 1fr;gap:22px;margin-top:8px}
+.grid3 h4,.grid2 h4{font-size:13px;letter-spacing:.08em;color:var(--muted);margin:6px 0 2px;font-weight:600}
+.grid3 ul,.grid2 ul{margin:4px 0;padding-left:18px}
+.grid3 li,.grid2 li{margin:5px 0;font-size:15px}
+.card.ext{padding:18px 24px}
+.card.ext h3{font-size:18px}
+.kind{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:0 8px;margin-left:8px;color:var(--muted);vertical-align:2px;font-weight:400}
+ol.path{padding-left:0;list-style:none;counter-reset:st}
+ol.path>li{margin:14px 0;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 20px}
+ol.path>li b{font-size:16px}
+ol.path .seq{margin:6px 0;font-size:15px}
+ol.path .seq a{text-decoration:none;border-bottom:1px dotted currentColor}
+ol.path .why{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;font-size:14px;color:var(--muted)}
+@media(max-width:1000px){.mapwrap{grid-template-columns:1fr}#panel{position:static;max-height:none}}
+@media(max-width:860px){.grid3,.grid2{grid-template-columns:1fr}}
+@media(max-width:500px){main{padding:18px 16px 40px}.card{padding:18px}.box{padding:18px}}
+</style>
+</head>
+<body>
+<main>
+<nav aria-label="返回导航">
+<a href="index.html">← 复杂系统实验室</a><a id="extensions" href="index.html#extensions">拓展实验 → 首页</a>
+</nav>
+
+<header>
+<div class="eyebrow">KNOWLEDGE MAP · 26 MODELS</div>
+<h1>复杂系统实验室 · 知识地图</h1>
+<p class="lead">复杂系统实验室现有 8 个基础实验和 12 组拓展（18 个模型），共 26 个模型。它们的数学类型很不一样：有离散规则、偏微分方程、常微分方程、迭代映射、随机采样，还有一个可以现场训练的小型神经细胞自动机。按主题它们可以分成六组。本页说明三件事：模型之间怎样相连，每个模型的核心知识点，以及建议的学习顺序。</p>
+</header>
+<noscript><p class="box">知识图、表格和知识卡需要启用 JavaScript。可先返回首页阅读各实验页的模型说明。</p></noscript>
+
+<nav class="jump" aria-label="本页目录"><a href="#relations">关系图</a><a href="#comparison">数学定位表</a><a href="#knowledge">查知识点</a><a href="#learning">学习路线</a><a href="#gaps">覆盖与下一步</a><a href="#reading">阅读来源</a></nav>
+<details class="box reading" open><summary>第一次来，怎样用这张地图？</summary><p class="small">先选一个问题，再改一个参数，最后比较两个相关模型。建议每次留下三句话：我改变了什么、看到了什么、它支持什么解释。</p><ul class="small"><li><b>先看直观现象：</b><a href="life.html">Life</a> → <a href="boids.html">Boids</a> → <a href="extensions.html#kuramoto">同步</a>，再返回地图看联系。</li><li><b>从工程数学出发：</b>按下方八阶段路线，从倒立摆、稳定性和反馈开始。</li><li><b>读结论时分三层：</b>“本页求解方式”说明实际代码；“核心知识点”包含理论背景及适用条件；“延伸与应用”是阅读方向，不代表本页已经验证。</li></ul></details>
+
+<h2>四条贯穿全部模型的主线</h2>
+<div class="threads">
+<div class="box"><b>1　局部规则 → 整体结构</b><span class="small">在空间和群体模型中，每个格点、粒子、振子只看邻居或平均场，整体却出现条纹、滑翔机、鸟群、同步、网络和雪崩。规则里并没有写这些结构。</span></div>
+<div class="box"><b>2　线性化看开头，非线性定结局</b><span class="small">线性化后求特征值，可以判断小扰动是否增长：倒立摆的极点、Turing 的 A(q)、对流的临界 Ra、圆柱尾流的 Hopf 分岔、Logistic 的 |f′|、Kuramoto 的平均场 K꜀ 都与这套思路有关；各自的边界条件和大系统极限须另外说明。扰动长大后的样子，要靠非线性分析和数值实验来定。</span></div>
+<div class="box"><b>3　模型、数值方法、显示，三层分开</b><span class="small">改 μ、F、Ra、Kp，改的是模型；改 Δt、网格、采样数，改的是近似；改播放速度、配色、视野，只改观看方式。随机模型还要再分清一层：随机种子不同，结果就会不同。</span></div>
+<div class="box"><b>4　从手写规则到求出、学出的规则</b><span class="small">大多数模型里规则是人写的，然后看它会产生什么。LQR 由 Riccati 方程求出增益，ACO 用信息素搜索路线，NCA 用梯度训练局部规则。这三个模型方向相反：先定目标，再反过来求规则。</span></div>
+</div>
+
+<h2 id="relations">关系图</h2>
+<p class="small">粗框是 8 个基础实验，细框是 18 个拓展模型。点一个模型，会显示与它直接相连的模型；点一条连线，会显示这条联系的具体内容；点空白处恢复全图。点下面的主题，会只突出这一组。</p>
+<div class="toolbar" role="group" aria-label="显示范围">
+<button id="f-all" aria-pressed="true">全部 26 个</button>
+<button id="f-base" aria-pressed="false">只看基础 8 个</button>
+<button id="f-order" aria-pressed="false">显示学习顺序编号</button>
+<button id="f-zoom" aria-pressed="false">放大关系图</button>
+</div>
+<p class="small">窄屏可左右滑动关系图。键盘可选中模型或连线后按 Enter；图下的表和知识卡也提供完整入口。</p>
+<div class="chips" id="chips" role="group" aria-label="主题"></div>
+<div class="mapwrap" style="margin-top:14px">
+<div class="svgscroll"><svg id="map" viewBox="0 0 1200 840" role="group" aria-label="26 个模型之间关系的知识图"></svg></div>
+<aside id="panel" class="box" aria-live="polite"></aside>
+</div>
+
+<h2 id="comparison">一张表看 26 个模型的数学位置</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>模型</th><th>时间</th><th>状态变量</th><th>相互作用范围</th><th>本页求解 / 更新方式</th><th>小扰动或稳定性分析</th><th>边界</th></tr></thead>
+<tbody id="mtable"></tbody></table></div>
+<p class="note">01、02、03、04、Vicsek、一维元胞自动机、NCA 都强调同步更新，即所有单元都用同一份旧状态计算新状态。沙堆是例外：它有 Abelian 性质，倾倒顺序不影响最终结果。粘菌模型的粒子按顺序沉积，痕迹场则同步扩散。08 的像素互相独立，计算先后不改变结果。</p>
+
+<h2 id="knowledge">每个模型的核心知识点</h2>
+<p class="small">按六个主题排列。基础实验写得较完整，拓展模型写核心知识点，以及延伸和应用方向。</p>
+<div class="searchbar"><label for="model-search">检索知识卡</label><input id="model-search" type="search" placeholder="如：混沌、反馈、NCA、临界" aria-describedby="search-count"><span id="search-count" role="status">共 26 个模型</span></div>
+<div id="cards"></div>
+
+<h2>与 AI 学习的接点</h2>
+<p class="small">Fun Study 把 AI 学习列为后续方向。下表列出这些模型里已经出现、在机器学习中还会遇到的结构。</p>
+<div class="tablewrap"><table>
+<thead><tr><th>模型</th><th>模型里的结构</th><th>在 AI 中对应什么</th></tr></thead>
+<tbody>
+<tr><td>NCA</td><td>所有格子共享一个小网络，20 步展开后用 BPTT 和 Adam 训练</td><td>直接就是深度学习：卷积共享权重、循环展开、梯度下降。BPTT 与离散最优控制的伴随法共享反向链式求导结构；训练目标和控制问题仍有区别</td></tr>
+<tr><td>02 · 03 · 一维 CA</td><td>Life 的一步是 3×3 卷积计数加逐点规则；Lenia 是核卷积加逐点增长函数</td><td>CNN 的一层也是"卷积 + 逐点非线性"；NCA 把这一层的权重交给训练</td></tr>
+<tr><td>Ising</td><td>能量 H = −Σ Jᵢⱼ sᵢsⱼ，Metropolis 按 Boltzmann 分布采样</td><td>Hopfield 网络和 Boltzmann 机用的是同一个能量函数，只是耦合 Jᵢⱼ 由学习得到；也对应能量模型、MCMC 采样、模拟退火</td></tr>
+<tr><td>小车摆 · 07</td><td>状态反馈、LQR 最小化二次代价、力矩限幅、摆起与切换</td><td>CartPole 是强化学习的经典任务；LQR 是"已知模型的最优控制"，RL 从交互数据学习策略或价值，也可结合已知模型。学到的控制器同样要检查闭环稳定性</td></tr>
+<tr><td>01 · 06 · 对流 · 圆柱流</td><td>已知方程，求场的演化</td><td>PINN 用方程残差训练网络；Fourier 神经算子学习"初值 → 解"的映射；替代模型用于加速 CFD；反过来也可以从图像辨识 b、ν、Ra</td></tr>
+<tr><td>Lorenz · 双摆 · Logistic</td><td>确定性混沌，误差按 e<sup>λt</sup> 放大</td><td>混沌时间序列是循环网络和储备池计算的标准测试；有初值或模型误差时，逐点轨迹预测受敏感依赖限制；长期统计量和分布仍可能预测</td></tr>
+<tr><td>08 · Logistic</td><td>扰动每步乘以 f′，n 步后是连乘积</td><td>RNN 和深层网络的梯度爆炸、梯度消失是同一种"雅可比连乘"；有研究发现超参数平面上"能否训练成功"的边界也是分形（<a href="https://arxiv.org/abs/2402.06184">Sohl-Dickstein，2024</a>，特定训练设置下的数值研究）</td></tr>
+<tr><td>04 · Vicsek · Kuramoto</td><td>每个个体汇总邻居或平均场，再更新自己</td><td>图神经网络的消息传递；注意力机制对所有元素加权平均，与平均场耦合形式相近；多智能体强化学习</td></tr>
+<tr><td>ACO · 粘菌</td><td>概率构造、正反馈强化、蒸发遗忘</td><td>元启发式优化；与强化学习同样涉及探索和利用；信息素蒸发提供遗忘机制，但不等同于学习率</td></tr>
+</tbody></table></div>
+
+<h2 id="learning">建议的学习顺序</h2>
+<p class="small">从控制系统出发，因为极点、相图和反馈是你最熟悉的工具。之后每个阶段都由上一阶段的一个概念接过去，接口写在每段末尾。在关系图上点"显示学习顺序编号"，可以看到每个模型的编号。</p>
+<ol class="path" id="path"></ol>
+
+<h2 id="gaps">这张地图覆盖了什么，还可以往哪里走？</h2>
+<p>目前适合作为“从简单规则到复杂行为”的交互式入口：离散计算、斑图、流体、集体行为、统计物理、非线性控制都已有代表模型。它覆盖的是一条学习主线，并不是复杂系统学科的完整目录。</p>
+<div class="threads"><div class="box"><b>下一步 1 · 跨模型的分析工具</b><p class="small">优先补相图与吸引域、分岔扫描、Lyapunov 估计、序参量和相关函数。每个专题用两个已有模型对照，比继续堆模型更有价值。</p></div><div class="box"><b>下一步 2 · 网络、噪声与信息</b><p class="small">复杂网络的拓扑与传播、随机微分方程与主方程、熵与互信息目前没有系统展开。它们分别补上“谁连着谁”“随机性怎样建模”“怎样量化结构”三块空白。</p></div><div class="box"><b>下一步 3 · 从动画到可检验实验</b><p class="small">进一步做步长与网格收敛、独立随机种子对照、暂态剔除与误差条，再与解析极限或论文基准比较。临界指数、湍流统计和 NCA 自修复均不由当前动画直接证明。</p></div></div>
+
+<h2 id="reading">按问题继续阅读</h2>
+<p class="small">先读实验页中的模型、计算方法和局限，再看原文。以下是关系图关键联系的起点，其他模型来源见对应实验页。</p>
+<ul class="small"><li>控制与摆起：<a href="https://underactuated.csail.mit.edu/acrobot.html">MIT · Underactuated Robotics，Cart-Pole</a>。</li><li>连续混沌与返回映射：<a href="https://math.mit.edu/classes/18.353J/Lectures/LecturesMatt/Lectures_16_17_pre.pdf">MIT 18.353J · Lorenz 系统讲义</a>。</li><li>离散规则的通用计算：<a href="https://www.complex-systems.com/pdf/15-1-1.pdf">Cook (2004) · Rule 110</a>；证明依赖特定无限背景，有限画布不等于通用计算证明。</li><li>流体与边界：<a href="https://arxiv.org/abs/comp-gas/9611001">Zou–He · LBM 边界条件</a>；<a href="https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/asymmetric-wakes-in-flows-past-circular-cylinders-confined-in-channels/CB3FDCC23674B236B3376E12FCA2AFA8">受限通道圆柱尾流研究</a>，说明几何与边界影响分岔，不能直接套用无界阈值。</li><li>可训练的局部规则：<a href="https://distill.pub/2020/growing-ca/">Growing Neural Cellular Automata (2020)</a>；区分生长、长期保持和受损再生三种训练目标。本页仅做小网格、固定 20 步目标训练。</li></ul>
+
+<footer>更新：2026-11-02 · 8 个基础实验 + 18 个拓展模型。本页为学习导航；动画、有限样本和短时训练不构成一般性证明。具体实现与局限以实验页为准。</footer>
+</main>
+
+<script>
+const CL={
+ c1:{n:'离散规则与计算',v:'--c1',x:20,y:20,w:370,h:390,d:'状态和时间都是离散的，规则精确，没有近似。'},
+ c2:{n:'斑图与自组织场',v:'--c2',x:415,y:20,w:370,h:390,d:'连续场在局部反应和空间耦合下自发形成结构。'},
+ c3:{n:'流体与对流',v:'--c3',x:810,y:20,w:370,h:390,d:'Navier–Stokes 方程及其变形：平流、黏性、浮力、边界。'},
+ c4:{n:'集体运动与群体智能',v:'--c4',x:20,y:430,w:370,h:390,d:'许多个体只用局部信息，形成整体秩序或解决问题。'},
+ c5:{n:'迭代、随机与几何',v:'--c5',x:415,y:430,w:370,h:390,d:'离散映射、随机生长与平衡统计：分形、分岔与相变。'},
+ c6:{n:'振子、控制与混沌',v:'--c6',x:810,y:430,w:370,h:390,d:'低维 ODE：稳定性、反馈控制、敏感依赖。'}
+};
+const X='extensions.html#';
+const N={
+ life:{c:'c1',b:1,x:120,y:110,t:'02 生命游戏',s:'B3/S23 元胞自动机',h:'life.html',d:'二维、二态、同步更新的元胞自动机。规则只看周围 8 格中活细胞的数目。'},
+ ca:{c:'c1',b:0,x:300,y:200,t:'一维元胞自动机',s:'Rule 30 / 110',h:X+'ca',g:'拓展 06',d:'一行格子、三格邻域，共 256 条规则。时空图把一维系统的整个历史画成一张图。'},
+ ant:{c:'c1',b:1,x:120,y:325,t:'05 兰顿蚂蚁',s:'二维图灵机',h:'ant.html',d:'一只蚂蚁按脚下颜色转向、改色、前进。经典 RL 规则约一万步后出现周期 104 的"公路"。'},
+ sand:{c:'c1',b:0,x:300,y:335,t:'BTW 沙堆',s:'自组织临界',h:X+'sand',g:'拓展 08',d:'高度达到 4 就倾倒给邻居，一次加一粒，雪崩有大有小。'},
+ lenia:{c:'c2',b:1,x:505,y:110,t:'03 Lenia',s:'连续 Life · 积分—微分',h:'continuous.html',d:'把生命游戏的状态、邻域、规则和时间都换成连续量后得到的非局部模型。'},
+ turing:{c:'c2',b:1,x:695,y:110,t:'01 斑点与条纹',s:'反应—扩散 · Turing 失稳',h:'turing.html',d:'两变量反应—扩散方程。抑制场扩散得比激活场快时，均匀态对某些波长失稳，形成有固定间距的花纹。'},
+ gray:{c:'c2',b:0,x:600,y:215,t:'Gray–Scott',s:'自复制斑点 · 迷宫',h:X+'gray',g:'拓展 03',d:'另一组两变量反应—扩散方程。许多图案是非线性局域结构，不是线性 Turing 失稳。'},
+ nca:{c:'c2',b:0,x:510,y:330,t:'神经细胞自动机',s:'训练出来的局部规则',h:X+'nca',g:'拓展 11',d:'局部更新规则是一个小网络，用梯度下降训练，目标是从种子长出指定形状。'},
+ excitable:{c:'c2',b:0,x:695,y:330,t:'可激发介质',s:'Barkley 螺旋波',h:X+'excitable',g:'拓展 04',d:'局部受激后发放一次再进入不应期，形成行波和螺旋波，而不是静态花纹。'},
+ fluid:{c:'c3',b:1,x:995,y:110,t:'06 二维流体',s:'涡量—流函数 NS',h:'fluid.html',d:'二维不可压缩 Navier–Stokes 方程的涡量形式，加上被动染料示踪；周期区域，没有壁面。'},
+ cylinder:{c:'c3',b:0,x:1085,y:230,t:'圆柱尾流',s:'LBM · Kármán 涡街',h:X+'cylinder',g:'拓展 09',d:'格子 Boltzmann 方法，加入圆柱障碍、入口、出口；尾流周期性脱落。'},
+ convection:{c:'c3',b:0,x:910,y:330,t:'Rayleigh–Bénard',s:'浮力驱动的对流',h:X+'convection',g:'拓展 09',d:'下热上冷的流体层：涡量—流函数方程加上温度场与浮力项（Boussinesq 近似）。'},
+ aco:{c:'c4',b:0,x:110,y:525,t:'蚁群优化',s:'信息素 · 旅行商',h:X+'aco',g:'拓展 12',d:'许多蚂蚁按信息素概率构造路线，短路线被强化，所有路线按比例蒸发。'},
+ boids:{c:'c4',b:1,x:295,y:525,t:'04 Boids',s:'分离 · 对齐 · 聚拢',h:'boids.html',d:'每只鸟按三条局部规则调整方向，没有领头鸟。'},
+ physarum:{c:'c4',b:0,x:110,y:650,t:'粘菌模型',s:'感知—沉积网络',h:X+'physarum',g:'拓展 12',d:'粒子读取并写入一个会扩散、会衰减的痕迹场，自组织成线状网络。'},
+ vicsek:{c:'c4',b:0,x:295,y:650,t:'Vicsek',s:'对齐 + 噪声',h:X+'vicsek',g:'拓展 05',d:'Boids 只保留对齐，加入噪声；噪声降低时出现集体运动。'},
+ kuramoto:{c:'c4',b:0,x:205,y:765,t:'Kuramoto',s:'频率不同的振子同步',h:X+'kuramoto',g:'拓展 05',d:'每个振子有自己的天然频率，通过平均场耦合；耦合足够强时部分振子锁频。'},
+ fractal:{c:'c5',b:1,x:600,y:525,t:'08 分形',s:'z → z² + c',h:'fractal.html',d:'复平面上的二次迭代。Mandelbrot 是参数 c 的地图，填充 Julia 是固定 c 时初值 z₀ 的地图。'},
+ dla:{c:'c5',b:0,x:505,y:645,t:'DLA',s:'随机生长的分形',h:X+'dla',g:'拓展 07',d:'随机游走的粒子逐个粘附，长出分枝团簇。'},
+ logistic:{c:'c5',b:0,x:700,y:645,t:'Logistic 映射',s:'倍周期 → 混沌',h:X+'logistic',g:'拓展 01',d:'一维迭代 xₙ₊₁ = r xₙ(1 − xₙ)，展示从不动点经倍周期分岔到混沌的完整路径。'},
+ ising:{c:'c5',b:0,x:510,y:765,t:'Ising 模型',s:'Metropolis · 相变',h:X+'ising',g:'拓展 08',d:'±1 自旋偏好与邻居一致，温度带来涨落；在 T꜀ 附近从有序变为无序。'},
+ pend:{c:'c6',b:1,x:905,y:525,t:'07 倒立摆',s:'PD 反馈 · 极点',h:'pendulum.html',d:'直接驱动关节的倒立摆。比例反馈要超过 mgl 才能扶正；力矩受限时线性分析只在小范围有效。'},
+ lorenz:{c:'c6',b:0,x:1085,y:525,t:'Lorenz 系统',s:'耗散混沌 · 奇怪吸引子',h:X+'lorenz',g:'拓展 02',d:'三个变量的 ODE，来自对流问题的截断；ρ = 28 时轨迹落在蝴蝶形吸引子上。'},
+ driven:{c:'c6',b:0,x:905,y:650,t:'受迫阻尼摆',s:'Poincaré 截面',h:X+'driven',g:'拓展 02',d:'单摆加阻尼和周期外力；每个驱动周期取一个点，看响应是周期的还是混沌的。'},
+ double:{c:'c6',b:0,x:1085,y:650,t:'双摆',s:'保守混沌 · Lagrange',h:X+'double',g:'拓展 02',d:'两节无阻尼摆；初值相差 10⁻⁶ 的两条轨迹最终完全分开。'},
+ cart:{c:'c6',b:0,x:995,y:765,t:'小车摆 · LQR',s:'欠驱动 · 摆起 + LQR',h:X+'cart',g:'拓展 10',d:'只能推小车；先用能量法把摆送到上方，再切换到 LQR 稳定。'}
+};
+const ORDER=['pend','cart','logistic','fractal','driven','double','lorenz','convection','fluid','cylinder','turing','gray','excitable','lenia','life','ca','ant','sand','boids','vicsek','kuramoto','ising','dla','aco','physarum','nca'];
+// [a,b,短标签,解释,是否基础间连线]
+const E=[
+ ['life','lenia','离散 → 连续推广','状态 0/1 → [0,1] 连续活性；8 邻居计数 → 环形核加权平均 U；出生/存活规则 → 钟形增长函数 G(U)；"一代" → 时间步 Δt。Lenia 的提出者 Bert Chan 就是按这个思路把 Life 逐项连续化的。反过来，把 Lenia 离散回去并不唯一对应 B3/S23。',1],
+ ['lenia','turing','场的自组织 · 按模态分析','两者都是周期区域上的场自发形成结构。Turing 用 ∇²，只与最近邻交换；Lenia 用半径 R 的核，非局部。小扰动都分解成 Fourier 模态：Turing 看 A(q) = J − q·D 的特征值，Lenia 看 λ(k) = G′(a₀)K̂(k)。对称核做 Taylor 展开，K∗a ≈ a + c∇²a，二阶项就是扩散，所以两种模型可以放在同一类"核 + 增长"框架下比较。',1],
+ ['turing','fluid','周期网格 PDE · ∇²','都是周期网格上的偏微分方程，都含 ∇² 项：01 的扩散 D∇²u，06 的黏性 ν∇²ω。流体多了平流项 u·∇ω：量被流动搬运，而速度又由涡量决定，这是流体非线性的来源。',1],
+ ['lenia','fluid','FFT 求解','Lenia 用 FFT 计算卷积 K∗a；流体用 FFT 解 −∇²ψ = ω 并做隐式黏性。原因相同：在周期区域上，卷积和求导在 Fourier 空间都变成逐项乘法。',1],
+ ['fluid','boids','个体 ↔ 连续介质','Boids 是粒子描述，流体是连续介质描述。个体足够多时，可以用密度场和平均速度场描述鸟群（Toner–Tu 理论，形式上是 NS 方程加对齐项）；反过来，SPH 方法用粒子求解流体。Boids 的对齐规则对邻居速度取平均，作用类似黏性：抹平速度差。',1],
+ ['boids','life','局部规则 → 整体秩序','都没有中心控制，每个单元只用邻居信息、同步更新。区别在于：Life 的邻居固定是 8 格；Boids 的邻居随运动改变。',1],
+ ['ant','boids','智能体 · 只看局部','两者都是智能体模型。鸟只读邻居状态；蚂蚁读脚下格子并改写它，后来的路线受自己留下的痕迹影响。这种"写入环境—再读出"的机制叫 stigmergy。',1],
+ ['ant','life','确定性离散 · 可计算','都是确定性的离散系统，都能构造逻辑门：生命游戏已证明图灵完备；广义兰顿蚂蚁可以模拟任意布尔电路（Gajardo 等，2002）。这提示一般预测问题存在计算困难；不能据此断言每个初值都只能逐步模拟。周期等特殊轨迹可以直接分析。',1],
+ ['fractal','ant','离散映射 · 轨道有界吗','都可写成离散映射 Sₙ₊₁ = F(Sₙ)。兰顿蚂蚁已证明从任何有限初始图案出发轨迹都无界（Cohen–Kong 定理）；Mandelbrot 图的每个像素问的正是"轨道是否有界"。',1],
+ ['fractal','pend','吸引域 · 稳定性边界','07 中力矩受限时，直立平衡只有有限的吸引域；填充 Julia 集是"轨道有界的初值集合"，边界是分形。判据同为线性化：连续系统看特征值实部 < 0，离散迭代看周期轨道乘子 |∏2zₖ| < 1。',1],
+ ['turing','pend','线性化 · 特征值（极点）','倒立摆只有一组极点：Iλ² + (b+Kd)λ + (Kp−mgl) = 0。Turing 模型对每个空间波数 q 有一个 2×2 矩阵 A(q)，其特征值就是该模态的"极点"。均匀模态稳定、某些 q ≠ 0 不稳定，就是 Turing 失稳；本页 b=0、r=20、q=0.1 时最大特征值约 +0.046。',1],
+ ['logistic','fractal','实轴上的同一族映射','代换 z = r(1/2 − x)、c = r(2 − r)/4 把 Logistic 映射变成 z ↦ z² + c，所以 Logistic 的分岔图就是 Mandelbrot 集实轴上的结构：r = 3 ↔ c = −3/4（主心形与周期 2 圆盘的切点），r ≈ 3.449 ↔ c ≈ −5/4，倍周期累积点 r ≈ 3.5699 ↔ c ≈ −1.4012。'],
+ ['logistic','driven','倍周期通往混沌','Poincaré 截面把受迫摆变成离散返回映射；在适当参数路径上可能出现 1、2、4、8 倍周期。Feigenbaum δ ≈ 4.669 只适用于满足相应条件的普适类，不能直接套到任意受迫系统。本实验未做级联扫描或常数测量。'],
+ ['logistic','lorenz','Lorenz 映射','Lorenz 本人把连续的 z(t) 每次到达的极大值记为 zₙ，发现 zₙ₊₁ 对 zₙ 的点云近似一条带尖顶的返回曲线。它帮助理解三维流的动力学；不等于与光滑 Logistic 映射严格等价，也不能直接沿用其普适常数。'],
+ ['double','pend','去掉控制 · 多一个自由度','双摆是倒立摆去掉反馈、再加一节。方程用同样的 Lagrange 方法推出，耦合项让两节的运动互相影响。07 的直立有反馈支撑；双摆无驱动无阻尼，能量守恒，高能量时出现混沌。'],
+ ['driven','pend','反馈 → 周期驱动','同一个单摆：07 用状态反馈 τ(θ, ω) 把系统稳定住；受迫摆加的是与状态无关的周期外力 A cos ωt。外力把系统变成非自治的，状态加上驱动相位是三维，这才允许混沌出现。'],
+ ['cart','pend','直接驱动 → 欠驱动','07 的电机直接作用在关节上，Kp > mgl 就能扶正。小车摆只能推小车，摆通过小车加速度被间接控制。线性化后两者都写成 ẋ = Ax + Bu；小车摆有 4 个状态，用 LQR 由 Riccati 方程求出增益，而不是手调两个增益。从下垂摆起还需要能量控制，因为线性控制器只在直立附近有效。'],
+ ['double','lorenz','保守混沌 vs 耗散混沌','两者都对初值敏感，但相空间性质不同。双摆无驱动、无阻尼，正则坐标 (q,p) 下相空间体积守恒（Liouville 定理），没有吸引子，轨迹在能量面上游走。Lorenz 的相体积以 e<sup>−(σ+1+β)t</sup> 收缩，长期轨迹落在体积为零的奇怪吸引子上。'],
+ ['driven','double','两种判断混沌的工具','双摆显示邻近轨迹的有限时间分离；受迫摆显示 Poincaré 截面。前者未重归一化，后者的点云也受暂态和采样影响；可作混沌线索，严格诊断还需 Lyapunov 估计和步长对照。'],
+ ['lorenz','convection','Lorenz 方程就来自对流','Lorenz（1963）把 Rayleigh–Bénard 对流的方程按 Fourier 模态展开，只保留 3 个：x 是对流卷的强度，y、z 是温度分布的偏差，ρ 对应 Ra/Ra꜀。ρ < 1 是导热，ρ 略大于 1 是稳定的对流卷，ρ = 28 是混沌。截断很粗，ρ = 28 时已不能定量描述真实对流；它的意义在于说明一个简单的确定性系统也可以长期不可预测。'],
+ ['convection','fluid','加上温度与浮力','涡量方程与 06 相同，多了一项浮力源 gα ∂T/∂x：温度的水平差异产生旋转。还要再解一个温度的平流—扩散方程，并设定顶底温度和壁面条件。06 是周期区域、没有能量输入；对流有持续加热，才能形成稳定的结构。'],
+ ['convection','turing','失稳选出特征波长','两者都是"均匀态失稳 → 某个波长增长最快 → 非线性限幅形成规则结构"。对流的临界条件由线性稳定性给出：理想无限水平层、定温自由滑移顶底 Ra꜀ = 27π⁴/4 ≈ 657.5，临界 k꜀H = π/√2；有限周期区域只允许离散波数，数值临界值还受网格影响。Turing 模型的波长则由扩散系数比和反应项决定。'],
+ ['cylinder','fluid','加入障碍物与出入口','06 是周期区域，使用 FFT 和半拉格朗日法，没有固壁或出入流边界；这里加入圆柱、入口、出口和固壁，边界条件决定了现象。求解方法也换了：格子 Boltzmann 方法不直接解 NS 方程，而是演化 9 个方向的粒子分布，宏观上恢复弱可压 NS。'],
+ ['cylinder','life','格子气 → LBM','LBM 的前身是格子气元胞自动机（HPP 1973、FHP 1986）：粒子在格点上按离散规则碰撞、迁移。把整数粒子换成实数分布函数、把碰撞换成 BGK 弛豫，就得到 LBM。它和生命游戏一样是"格点 + 局部规则 + 同步更新"，只是规则来自物理守恒律。'],
+ ['cylinder','kuramoto','自激振荡与锁频','理想无界二维圆柱来流约在 Re ≈ 47 发生尾流 Hopf 分岔；本页的受限通道与抛物线来流会改变阈值。周期脱落可看作极限环振荡。若圆柱本身可以振动，涡脱落频率会被结构固有频率"捕获"（lock-in），这是工程中涡激振动的危险区，和 Kuramoto 振子的锁频是同一类现象。'],
+ ['gray','turing','同为反应—扩散','方程结构相同：两个场，各有局部反应和不同的扩散系数，本页都用五点差分加显式 Euler。区别在于花纹的成因：01 的花纹来自线性 Turing 失稳；Gray–Scott 的许多图案（自复制斑点、移动斑点）出现在均匀态线性稳定的参数区，要靠有限振幅的扰动触发，属于非线性局域结构。'],
+ ['gray','lenia','"人工生物"的两种来源','Gray–Scott 的斑点会移动、分裂、彼此排斥，外观很像 Lenia 的"生物"。一个靠局部扩散加化学反应，一个靠非局部核加增长函数，可以比较两类模型中局域结构的来源。'],
+ ['excitable','turing','静态斑图 vs 行波','同属反应—扩散，区别在局部动力学：01 是双稳或振荡型反应，配合扩散差选出静态波长；可激发介质的静息态稳定，超过阈值就发放一次，然后进入不应期，所以产生向前传播的波，波相撞后湮灭。01 的反应项 u − u³ − v 是 FitzHugh–Nagumo 形式，换一组参数也能变成可激发的。'],
+ ['excitable','kuramoto','振荡与同步','可激发单元周期受刺激时成为振子；螺旋波中心是相位奇点，周围每一点的激发相位按角度依次排列。心脏窦房结起搏细胞的同步可以用 Kuramoto 类模型描述，心室螺旋波折返涉及空间传播和不应期，不能只用相位同步模型替代。'],
+ ['nca','life','人写规则 → 训练规则','Life 由人写下 B3/S23，然后观察会长出什么。NCA 先给目标图案，再用梯度下降去找局部规则，是逆问题。两者的计算结构相同：每格只看邻居，所有格子同步、共享同一个规则。'],
+ ['nca','lenia','连续状态 + 可微','Lenia 的连续状态、卷积和平滑增长函数为可微建模提供起点，但 [0,1] 截断处不光滑。NCA 用共享小网络表示局部更新，再通过时间展开求梯度；训练目标和稳定性设计仍须另做。'],
+ ['nca','cart','训练与最优控制','LQR 在一个时间展开的动态上最小化二次代价，解 Riccati 方程；NCA 在 20 步展开的动态上最小化目标误差，用 BPTT 求梯度。BPTT 与离散最优控制伴随法共享链式求导结构：把动态当作约束，从末端往回传灵敏度。'],
+ ['vicsek','boids','只保留对齐','Boids 有三条规则；Vicsek 只保留对齐，加入可调噪声 η，变成可以做统计物理分析的最简模型。Boids 页的"朝向一致度"就是 Vicsek 的序参量 φ = |Σ e<sup>iθ</sup>|/N。'],
+ ['vicsek','kuramoto','都平均 e^(iθ)','两者的序参量都是单位复数的平均长度。Vicsek 中被平均的是运动方向，邻居由空间位置决定；Kuramoto 中被平均的是振荡相位，所有振子全连接。一个在实空间对齐，一个在相位空间同步。'],
+ ['vicsek','ising','序参量与有序—无序','都有序参量（φ 或磁化 m），都有"噪声 / 温度"控制的有序—无序转变。区别：Ising 是平衡态统计；Vicsek 的粒子在运动，是非平衡系统。无限二维、有限温度、短程相互作用的连续对称平衡模型没有真正长程有序（Mermin–Wagner 定理），运动的 Vicsek 粒子却可以有，因为运动把方向信息带向远方（Toner–Tu 理论）。'],
+ ['ising','sand','调到的临界 vs 自组织临界','两者都关心"临界态"：关联长度很长、事件规模服从幂律。Ising 只在调到 T꜀ ≈ 2.269 时临界；沙堆不调任何参数，在"慢输入、快释放、局部阈值"下自己演化到临界态，这就是"自组织临界"的含义。'],
+ ['ising','dla','随机格点上的分形','临界温度下 Ising 的同号团簇是分形；DLA 团簇也是分形（维数约 1.71）。来源不同：前者是平衡态的热涨落，后者是不可逆的生长过程。'],
+ ['sand','life','阈值规则；同步 vs Abelian','都是格点上的局部阈值规则。生命游戏必须同步更新，换成逐个更新就是另一个模型；沙堆有 Abelian 性质（Dhar 1990）：多个不稳定格的倾倒顺序不影响最终结果，所以本页可以用队列逐个处理。'],
+ ['ca','life','一维 vs 二维','一维元胞自动机只有 256 条规则，可以逐条系统比较；Wolfram 的四类行为（均匀、周期、混沌、复杂）在二维规则中同样出现。Rule 110 和生命游戏都被证明图灵完备，说明"能做通用计算"并不需要复杂的规则。'],
+ ['ca','ant','确定性与不可预测','都是精确的离散规则，却都出现看似随机的阶段：Rule 30 的中心列、兰顿蚂蚁前一万步。"确定"不等于"可以抄近路预测"，要知道结果，一般只能一步步算。'],
+ ['dla','fractal','随机分形 vs 确定分形','08 的分形来自确定性迭代，是集合的边界；DLA 来自随机游走与不可逆粘附，是一个实际长出来的团簇。两者都可以用分形维数描述：Mandelbrot 集边界的 Hausdorff 维数是 2，二维 DLA 团簇约 1.71。'],
+ ['dla','fluid','Laplace 方程与生长','游走粒子到达各处的概率满足 Laplace 方程 ∇²φ = 0，尖端处梯度最大，长得最快。06 每步解的 −∇²ψ = ω 是同类方程（Poisson）。同一种"Laplace 生长"也描述 Hele-Shaw 粘性指进、电沉积、介电击穿。'],
+ ['aco','ant','一只蚂蚁 → 一群蚂蚁','兰顿蚂蚁只有一只，写下的颜色不会消失，规则确定。ACO 有许多蚂蚁，写下的信息素会蒸发，选路是概率性的，而且有明确的优化目标（路线最短）。共同点是环境本身承担了记忆。'],
+ ['aco','physarum','同为 stigmergy','都是"个体写入环境、环境再引导个体"，都靠正反馈强化好路径、靠蒸发或衰减遗忘旧路径。ACO 的目标是路线长度；粘菌模型没有显式目标，网络形态由探头距离、角度、衰减率等局部参数决定。'],
+ ['physarum','turing','粒子 + 扩散场','粘菌模型的痕迹场每步做扩散和衰减，就是反应—扩散方程中的一个场，只是"反应"（沉积）由粒子完成。粒子沿浓度梯度移动、浓度又由粒子产生，这是与趋化模型（Keller–Segel）机制相似的粒子模型，但不是该 PDE 的严格离散化。'],
+ ['physarum','boids','感知邻居 vs 感知环境','Boids 直接感知邻居鸟的位置和速度；粘菌粒子不感知彼此，只感知环境场，相互作用通过场间接传递。后一种方式计算量与粒子数成线性关系，所以能用上千个粒子。']
+];
+
+const svg=document.getElementById('map'),NS='http://www.w3.org/2000/svg';
+function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
+const cv=c=>'var('+CL[c].v+')';
+const gC=el('g',{}),gE=el('g',{}),gH=el('g',{}),gL=el('g',{}),gN=el('g',{});
+for(const k in CL){const c=CL[k];const g=el('g',{class:'cl'},gC);
+ el('rect',{x:c.x,y:c.y,width:c.w,height:c.h,rx:22,style:'fill:color-mix(in srgb,'+cv(k)+' 6%,transparent);stroke:'+cv(k)},g);
+ const t=el('text',{x:c.x+18,y:c.y+30,style:'fill:'+cv(k)},g);t.textContent=c.n;}
+E.forEach((e,i)=>{const a=N[e[0]],b=N[e[1]];
+ e.line=el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'edge'+(e[4]?' base':'')},gE);
+ e.hit=el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'hit',tabindex:0,role:'button','aria-label':a.t+' 与 '+b.t+'：'+e[2].replace(/<[^>]*>/g,'')},gH);
+ e.hit.addEventListener('click',ev=>{ev.stopPropagation();showEdge(i)});
+ e.hit.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();showEdge(i)}});
+ const g=el('g',{class:'elab'},gL);const t=el('text',{x:(a.x+b.x)/2,y:(a.y+b.y)/2+4,'text-anchor':'middle'},g);t.textContent=e[2];
+ g.insertBefore(el('rect',{rx:7}),t);e.lab=g;});
+for(const id in N){const n=N[id],W=n.b?172:150,H=n.b?58:46;
+ const g=el('g',{class:'node'+(n.b?' base':''),tabindex:0,role:'button','aria-label':n.t},gN);
+ el('rect',{x:n.x-W/2,y:n.y-H/2,width:W,height:H,rx:13,style:'fill:color-mix(in srgb,'+cv(n.c)+(n.b?' 20%':' 9%')+',var(--panel));stroke:'+cv(n.c)},g);
+ const t=el('text',{x:n.x,y:n.y-(n.b?3:2),'text-anchor':'middle',class:'t'},g);t.textContent=n.t;
+ const s=el('text',{x:n.x,y:n.y+(n.b?16:14),'text-anchor':'middle',class:'sub'},g);s.textContent=n.s;
+ const bd=el('g',{class:'badge'},g);el('circle',{cx:n.x-W/2+2,cy:n.y-H/2+2,r:12},bd);
+ const bt=el('text',{x:n.x-W/2+2,y:n.y-H/2+6,'text-anchor':'middle'},bd);bt.textContent=ORDER.indexOf(id)+1;
+ n.g=g;n.W=W;
+ g.addEventListener('click',ev=>{ev.stopPropagation();showNode(id)});
+ g.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();showNode(id)}});}
+function sizeLabel(e){const t=e.lab.querySelector('text'),r=e.lab.querySelector('rect'),bb=t.getBBox();
+ r.setAttribute('x',bb.x-6);r.setAttribute('y',bb.y-3);r.setAttribute('width',bb.width+12);r.setAttribute('height',bb.height+6)}
+const panel=document.getElementById('panel');
+let mode='all',focusCl=null;
+function visible(id){return mode!=='base'||N[id].b}
+function applyFilter(){for(const id in N)N[id].g.classList.toggle('hide',!visible(id));
+ E.forEach(e=>{const v=visible(e[0])&&visible(e[1]);e.line.classList.toggle('hide',!v);e.hit.classList.toggle('hide',!v)})}
+function reset(){E.forEach(e=>{e.line.classList.remove('on','off');e.lab.classList.remove('on')});
+ for(const id in N)N[id].g.classList.remove('sel','off');
+ document.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','false'));focusCl=null}
+const tagc=c=>'<span class="tagc" style="color:'+cv(c)+'">'+CL[c].n+'</span>';
+const nlink=id=>'<a href="#c-'+id+'">'+N[id].t+'</a>';
+function intro(){reset();
+ const count=E.filter(e=>visible(e[0])&&visible(e[1])).length;
+ panel.innerHTML='<h3>怎样读这张图</h3><p class="small">当前显示 '+(mode==='base'?'8 个基础实验':'全部 26 个模型')+'、'+count+' 条关系。六个虚线区域是六个主题；联系包括共同方程、同一分析工具、模型推广或机制类比。类比不代表两个系统严格等价。</p><ul class="small"><li>上排：离散规则、连续场和流体。</li><li>下排：群体、映射与随机、低维动力学。</li><li>建议先对照 Life ↔ Lenia，再看 Logistic ↔ 分形、Lorenz ↔ 对流。</li></ul><p class="small">点任一模型或连线开始。按 Escape 恢复当前范围。</p>'}
+function showNode(id){reset();const n=N[id];n.g.classList.add('sel');const rel=[];
+ E.forEach((e,i)=>{const on=(e[0]===id||e[1]===id)&&visible(e[0])&&visible(e[1]);
+  e.line.classList.add(on?'on':'off');if(on){e.lab.classList.add('on');sizeLabel(e);
+   const o=e[0]===id?e[1]:e[0];rel.push('<li><b>'+N[o].t+'</b>（'+e[2]+'）：'+e[3]+'</li>')}});
+ for(const k in N){if(k===id)continue;if(!E.some(e=>(e[0]===id&&e[1]===k)||(e[1]===id&&e[0]===k)))N[k].g.classList.add('off')}
+ panel.innerHTML=tagc(n.c)+'<h3>'+n.t+'</h3><p class="small">'+(n.b?'基础实验':N[id].g2||'')+'</p><p class="small">'+n.d+'</p><p class="small">学习顺序第 '+(ORDER.indexOf(id)+1)+' 个。</p><ul class="small">'+rel.join('')+'</ul><p><a href="'+n.h+'">打开模型 →</a>　<a href="#c-'+id+'">核心知识点 ↓</a></p>'}
+function showEdge(i){reset();const e=E[i];
+ E.forEach((x,j)=>x.line.classList.add(j===i?'on':'off'));e.lab.classList.add('on');sizeLabel(e);
+ for(const k in N){if(k===e[0]||k===e[1])N[k].g.classList.add('sel');else N[k].g.classList.add('off')}
+ panel.innerHTML='<h3>'+N[e[0]].t+' ↔ '+N[e[1]].t+'</h3><p class="eyebrow">'+e[2]+'</p><p class="small">'+e[3]+'</p><p><a href="'+N[e[0]].h+'">'+N[e[0]].t+' →</a>　<a href="'+N[e[1]].h+'">'+N[e[1]].t+' →</a></p>'}
+function showCl(c){if(focusCl===c){intro();return}reset();focusCl=c;
+ document.querySelector('.chip[data-c="'+c+'"]').setAttribute('aria-pressed','true');
+ const ids=Object.keys(N).filter(k=>N[k].c===c&&visible(k));const cross=new Set();
+ E.forEach(e=>{if(!visible(e[0])||!visible(e[1]))return;const a=N[e[0]].c===c,b=N[e[1]].c===c;if(a&&b){e.line.classList.add('on')}else if(a||b){cross.add(a?e[1]:e[0])}else e.line.classList.add('off')});
+ for(const k in N)if(N[k].c!==c&&!cross.has(k))N[k].g.classList.add('off');
+ panel.innerHTML=tagc(c)+'<h3>'+CL[c].n+'</h3><p class="small">'+CL[c].d+'</p><p class="small"><b>组内：</b>'+ids.map(nlink).join('、')+'</p><p class="small"><b>与其他组相连：</b>'+[...cross].map(nlink).join('、')+'</p><p><a href="#cl-'+c+'">本组知识点 ↓</a></p>'}
+const GL={ca:'拓展 06',sand:'拓展 08',gray:'拓展 03',nca:'拓展 11',excitable:'拓展 04',cylinder:'拓展 09',convection:'拓展 09',aco:'拓展 12',physarum:'拓展 12',vicsek:'拓展 05',kuramoto:'拓展 05',dla:'拓展 07',logistic:'拓展 01',ising:'拓展 08',lorenz:'拓展 02',driven:'拓展 02',double:'拓展 02',cart:'拓展 10'};
+for(const id in GL)N[id].g2='拓展模型 · '+GL[id];
+const chips=document.getElementById('chips');
+for(const k in CL){const b=document.createElement('button');b.className='chip';b.dataset.c=k;b.style.color=cv(k);b.setAttribute('aria-pressed','false');b.textContent=CL[k].n;
+ b.addEventListener('click',()=>showCl(k));chips.appendChild(b)}
+const fa=document.getElementById('f-all'),fb=document.getElementById('f-base'),fo=document.getElementById('f-order');
+fa.onclick=()=>{mode='all';fa.setAttribute('aria-pressed','true');fb.setAttribute('aria-pressed','false');applyFilter();intro()};
+fb.onclick=()=>{mode='base';fb.setAttribute('aria-pressed','true');fa.setAttribute('aria-pressed','false');applyFilter();intro()};
+fo.onclick=()=>{const on=svg.classList.toggle('showorder');fo.setAttribute('aria-pressed',String(on))};
+document.getElementById('f-zoom').onclick=ev=>{const on=svg.parentElement.classList.toggle('zoom');ev.currentTarget.setAttribute('aria-pressed',String(on));ev.currentTarget.textContent=on?'恢复全图大小':'放大关系图'};
+svg.addEventListener('click',intro);
+svg.addEventListener('keydown',ev=>{if(ev.key==='Escape')intro()});
+intro();
+
+/* ---------- table ---------- */
+const T={
+ life:['离散（代）','0 / 1','周围 8 格计数','精确规则，同步更新','不适用；看不动点、周期、平移','死边界或环面'],
+ ca:['离散（代）','一行 0 / 1','左中右 3 格','精确查表，同步更新','不适用；看 Wolfram 分类','周期'],
+ ant:['离散（步）','格子颜色 + 蚂蚁位置朝向','只读写脚下一格','精确规则','不适用；已证明轨迹无界','无限平面'],
+ sand:['离散（步）','每格整数高度','4 邻居倾倒','精确规则，队列倾倒','不适用；看雪崩规模分布','开放，颗粒流失'],
+ lenia:['连续','[0,1] 实数场','半径 R 的环形核（非局部）','投影显式 Euler，FFT 卷积','λ(k) = G′(a₀) K̂(k)','周期'],
+ turing:['连续','两个实数场 u, v','最近邻（∇²，五点差分）','显式 Euler，Δt = 0.01','A(q) = J − q·diag(Dᵤ,Dᵥ) 的特征值','周期'],
+ gray:['连续','两个场 u（原料）, v（产物）','最近邻 ∇²','显式 Euler，Δt = 1','均匀态线性化；许多图案在线性稳定区','周期'],
+ nca:['离散（20 步展开）','每格 4 通道','自己 + 4 邻均值','同步更新；BPTT + Adam 训练权重','看训练损失下降','12² 周期网格'],
+ excitable:['连续','u（激发）, v（恢复）','最近邻 ∇²','显式 Euler，Δt = 0.01','静息态稳定但可激发；阈值与不应期','周期'],
+ fluid:['连续','速度向量（以涡量 ω 求解）+ 染料','平流、黏性 + 全局 Poisson','半拉格朗日平流 + Fourier 谱方法','本页未展开','周期'],
+ cylinder:['离散格子步（近似连续流体）','每格 9 个分布函数 fᵢ','最近邻迁移','LBM：BGK 碰撞 + 迁移','周期尾流；本页未测分岔阈值','入口 / 出口 / 反弹壁'],
+ convection:['连续','ω, ψ, T','∇² + 平流 + 全局 Poisson','迎风平流 + Jacobi 迭代，Δt = 0.15','导热态在 Ra > Ra꜀ 时失稳','左右周期，顶底定温'],
+ aco:['离散（代）','信息素矩阵 τᵢⱼ','全部城市对','概率构造路线 + 蒸发 / 增强','不适用；启发式搜索','—'],
+ boids:['离散步 1/60 s','每只鸟的位置、速度','感知半径内邻居（随运动变化）','同步显式更新 + 限幅 + 恒速','本页未展开','周期'],
+ physarum:['离散（步）','粒子位置朝向 + 痕迹场','三个探头 + 3×3 扩散','顺序沉积 + 同步扩散衰减','不适用','周期'],
+ vicsek:['离散（步）','位置 + 朝向角','半径 25 内邻居（含自己）','同步更新 + 均匀噪声','序参量随噪声 η 的变化','周期'],
+ kuramoto:['连续','80 个相位 θᵢ','全连接（平均场）','显式 Euler，Δt = 0.03','平均场：K > K꜀ 时 r 增长','—'],
+ fractal:['离散（迭代）','复数 z','无空间，每个像素独立','逃逸时间，分块计算','周期轨道乘子 |∏2zₖ|','—'],
+ dla:['离散（逐粒子）','团簇占据的格点','随机游走 + 最近邻粘附','蒙特卡罗，固定种子','尖端生长失稳','发射圆 / 丢弃圆'],
+ logistic:['离散（迭代）','一个实数 x ∈ [0,1]','无空间','按映射迭代（浮点）；分岔图丢弃暂态','|f′(x*)| < 1；Lyapunov 指数','—'],
+ ising:['离散（蒙特卡罗步）','每格 ±1','4 邻居耦合','Metropolis 单自旋翻转','平衡统计：T꜀ ≈ 2.269','周期'],
+ pend:['连续','θ, ω','无空间','RK4，Δt = 1/240 s','Iλ² + (b+Kd)λ + (Kp−mgl) = 0','—'],
+ lorenz:['连续','x, y, z','无空间','RK4，h = 0.01','平衡点 C± 在 ρ ≈ 24.74 失稳','—'],
+ driven:['连续（周期驱动）','θ, ω + 驱动相位','无空间','RK4，h = 0.01，每周期采样','Poincaré 映射的不动点与周期点','—'],
+ double:['连续','θ₁, θ₂, ω₁, ω₂','无空间','RK4，h = 0.005','能量守恒；邻近轨迹分离','—'],
+ cart:['连续','x, ẋ, θ, θ̇','无空间','RK4，h = 0.01；离散 Riccati 求 LQR','线性化 + 可控性；LQR 闭环极点','无轨道限制']
+};
+const tb=document.getElementById('mtable');let html='';
+for(const c in CL){html+='<tr class="grp"><td colspan="7" style="color:'+cv(c)+'">'+CL[c].n+'</td></tr>';
+ for(const id in N)if(N[id].c===c)html+='<tr><td>'+(N[id].b?'':'<span style="font-weight:400">')+'<a href="#c-'+id+'" style="color:inherit;text-decoration:none">'+N[id].t+'</a>'+(N[id].b?'':'</span>')+'</td><td>'+T[id].join('</td><td>')+'</td></tr>'}
+tb.innerHTML=html;
+
+/* ---------- cards ---------- */
+const CARD={
+ turing:{cls:'两变量反应—扩散 PDE；局部反应项是 FitzHugh–Nagumo 型',eq:'∂u/∂t = 0.1(u − u³ − v + b) + Dᵤ∇²u　　∂v/∂t = 0.2(u − 0.8v) + Dᵥ∇²v',
+  core:['扩散驱动失稳（Turing 失稳）：没有扩散时稳定的均匀状态，在 Dᵥ ≫ Dᵤ 时，某些空间波数的扰动反而增长。','"局部激活、远程抑制"：u 自我放大，v 扩散更远，把周围压下去，所以花纹有固定间距；间距由 r = Dᵥ/Dᵤ 和反应系数共同决定。','b 决定两类区域是否平衡：接近 0 易成条纹，偏离 0 易成斑点。','线性分析只说明最初哪个波长增长最快；−u³ 限制振幅，并让模态相互竞争，最终决定是条纹、斑点还是带缺陷的迷宫。','显式 Euler 的扩散稳定性条件 DΔt/h² < 1/4（本页最大 0.2048）。'],
+  ext:['Gray–Scott（已实现）','可激发介质与螺旋波（已实现）','Rayleigh–Bénard 对流：同类的波长选择（已实现）','Swift–Hohenberg 方程；相场模型'],
+  app:['动物体表花纹（斑马鱼条纹、豹斑）','指（趾）骨数目与间距的发育机制','半干旱地区植被的带状、斑块状分布','CIMA 化学反应中首次在实验里观察到 Turing 斑图（1990）']},
+ life:{cls:'二维、二态、只依赖邻居总数的元胞自动机',eq:'aⁿ⁺¹ = (1 − aⁿ)·𝟙[N ∈ B] + aⁿ·𝟙[N ∈ S]　　Conway：B = {3}，S = {2,3}',
+  core:['同步更新：全部格子用同一代的邻居数决定下一代。','这是精确的差分关系，不是某个微分方程的近似；"一代"本身就是时间单位，不能缩小成 Δt。','结构分类：静物 F(a) = a、周期 p 振荡器 Fᵖ(a) = a、飞船（若干代后得到平移的自己）、枪（周期性发射飞船）。','图灵完备：可以用滑翔机流搭出逻辑门和存储器，因此"某个图案最终会不会消失"这类问题一般不可判定。','规则空间很大：HighLife（B36/S23）有自复制结构；Seeds（B2/S）的某些稀疏图案会快速扩张，另一些会消失。'],
+  ext:['一维元胞自动机（已实现）','NCA：训练出来的规则（已实现）','格子气自动机 → 格子 Boltzmann（圆柱尾流）','Hashlife 加速算法'],
+  app:['并行计算与硬件模型','城市扩张、森林火灾、传染病传播等元胞自动机模型','von Neumann 自复制机器问题']},
+ lenia:{cls:'单一标量场的非局部积分—微分方程，带 [0,1] 约束',eq:'U = K_R ∗ a　　G(U) = 2·exp[−(U − μ)² / 2σ²] − 1　　∂a/∂t = G(U)（截断在 [0,1]）',
+  core:['从 Life 推广的四处：状态连续、邻域是加权平均（环形核）、规则是平滑的钟形增长函数、时间连续。','增长窗口 |U − μ| < 1.177σ：邻域太稀或太密都会衰减，不是简单的正反馈。','均匀平衡 a₀ = μ ± σ√(2 ln 2)；小扰动增长率 λ(k) = G′(a₀)·K̂_R(k)，环形核的 Fourier 系数可正可负，所以不同波长表现不同。','截断到 [0,1] 是模型的一部分，使方程在边界处不光滑。','Δt 是精度参数，比较时要用相同的模型时间 t；FFT 只是加速同一个卷积。'],
+  ext:['Flow-Lenia：加入质量守恒（2023）','多通道、多核 Lenia；Particle Lenia','SmoothLife（2011）','神经场方程（Amari）'],
+  app:['人工生命：自组织"生物"的搜索与分类','开放式演化、质量多样性搜索算法的测试平台','神经场模型用于大脑皮层活动与视觉幻觉图案']},
+ boids:{cls:'离散时间多智能体模型（邻域随运动变化、带限幅、恒速）',eq:'aᵢ = limit(wₛ·sᵢ + wₐ·alignᵢ + w꜀·cᵢ, 220)　　vᵢ ← v·(vᵢ + Δt·aᵢ)/|…|　　xᵢ ← wrap(xᵢ + Δt·vᵢ)',
+  core:['三条规则：分离（短程排斥，∝ −r/|r|²）、对齐（向邻居平均速度靠拢）、聚拢（向邻居平均位置靠拢）。','没有领导者，只用局部信息就形成整体秩序；序参量"朝向一致度"是平均单位速度的长度，取值 0～1。','分离与聚拢的竞争决定群的尺度；感知半径决定信息能传多远。','周期边界下计算相对位置要用最短位移，否则鸟会错误地飞向画布中央。','一致度接近 0 不一定是无序，也可能是两群反向飞行：单个统计量会丢失信息。'],
+  ext:['Vicsek：只保留对齐 + 噪声（已实现）','Kuramoto 同步（已实现）','Toner–Tu 活性物质流体理论','Couzin 区域模型；社会力行人模型'],
+  app:['电影群体动画（Reynolds 1987）','无人机、机器人集群的一致性控制','粒子群优化 PSO（1995）','人群疏散仿真']},
+ ant:{cls:'二维图灵机（turmite）：离散状态机',eq:'dₙ₊₁ = (dₙ + turn(c)) mod 4　　C(xₙ) ← (c + 1) mod q　　xₙ₊₁ = xₙ + e(dₙ₊₁)',
+  core:['完整状态 = 整个格子图案 + 蚂蚁位置与朝向，不能只记蚂蚁。','经典 RL 从空白出发：先是有对称性的小图案，然后约一万步看似无规则，之后出现周期 104 步、斜向延伸的"公路"。','已证明：任何有限初始图案下轨迹都无界（Cohen–Kong 定理）；"一定会出现公路"至今未证明。','规则可逆：给定当前状态能唯一倒推上一步。','多色规则（如 LLRR）会长出对称图案，说明规则串决定几何组织方式。'],
+  ext:['蚁群优化：多只蚂蚁 + 会蒸发的信息素（已实现）','粘菌模型（已实现）','Turmites：蚂蚁带内部状态','多只蚂蚁、六边形网格'],
+  app:['stigmergy 机制 → 蚁群优化算法','计算复杂性中"简单规则、难以预测"的标准例子']},
+ fluid:{cls:'二维不可压缩 Navier–Stokes 方程（涡量—流函数形式）+ 被动标量平流',eq:'∂ω/∂t + u·∇ω = ν∇²ω　　−∇²ψ = ω　　u = ∂ψ/∂y，v = −∂ψ/∂x　　∂c/∂t + u·∇c = 0',
+  core:['不可压缩条件 ∇·u = 0 由流函数自动满足，压力项随之消去，只需解一个 Poisson 方程。','二维没有涡拉伸；ν = 0 时涡量随流体质点守恒，所以涡可以长时间存在。','理想点涡中，等强反号涡对平移，同号涡对绕转；有有限涡核和黏性时，同号涡还可能合并。','在合适的强迫与尺度区间，二维湍流可出现能量逆级联；本页几个衰减涡的动画并未测量级联通量。','染料细丝显示流动的拉伸；仅凭细丝不能证明混沌混合，还需考察粒子分离或拉伸折叠。插值造成的数值扩散也会抹平细丝。','半拉格朗日平流对大 Δt 也稳定，但会额外耗散；"稳定"不等于"准确"。'],
+  ext:['圆柱尾流（已实现）','Rayleigh–Bénard 对流（已实现）','Kelvin–Helmholtz 不稳定、浅水方程','SPH 等其他求解方法'],
+  app:['大尺度大气、海洋流动的近似二维模型','游戏与电影的实时烟雾、水体（Stam 方法）','微流控芯片中的混合','焊接与金属增材制造的熔池流动：表面张力梯度驱动的 Marangoni 对流影响焊道形状']},
+ pend:{cls:'二阶非线性 ODE + 饱和 PD 反馈（直接驱动关节）',eq:'ml²θ̈ = mgl·sin θ − bθ̇ + τ　　τ = sat(−Kp·θ − Kd·θ̇, ±τmax)',
+  core:['θ 从直立算起，重力项为正：直立是不稳定平衡，mgl 相当于"负刚度"。','线性化特征方程 Iλ² + (b+Kd)λ + (Kp − mgl) = 0；渐近稳定需要 Kp > mgl 且 b + Kd > 0。','力矩饱和后，极点只描述小角度、小速度的情况；大偏角能否救回由吸引域决定。','θ 是圆周变量，相空间实际是圆柱面；控制器用折回到 [−π, π] 的角误差。','RK4 定步长，每个子阶段重新计算反馈和饱和；播放速度不影响积分步长。'],
+  ext:['小车摆：欠驱动 + LQR + 摆起（已实现）','受迫阻尼摆、双摆（已实现）','Furuta 摆、二级倒立摆','Lyapunov 函数估计吸引域；MPC'],
+  app:['机器人关节伺服','两轮自平衡车','人形机器人步行的线性倒立摆模型（LIPM / ZMP）','火箭姿态控制与垂直着陆']},
+ fractal:{cls:'复平面上的离散非线性映射',eq:'zₙ₊₁ = zₙ² + c　　逃逸：|z| > max(2, |c|)　　平滑着色 ν = n + 1 − log₂ log|zₙ|',
+  core:['Mandelbrot 集 = 使 0 的轨道有界的 c；等价地 = 使 Julia 集连通的 c，所以它是 Julia 集的"目录"。','结构对应吸引周期轨道：主心形 = 有吸引不动点；左侧圆盘 |c + 1| < 1/4 = 吸引 2-周期；每个"芽"对应一个周期。','实轴上依次发生倍周期分岔（c = −3/4、−5/4 …），累积到 c ≈ −1.4012，与 Logistic 映射完全对应。','扰动线性化 δzₙ₊₁ ≈ 2zₙ δzₙ：周期轨道的乘子 |∏2zₖ| < 1 时吸引。','"分形"是几何性质，"差分 / 微分方程"是描述演化的方式，二者不是同一分类；有分形图案不等于每条轨道都混沌。','边界的 Hausdorff 维数为 2（Shishikura，1998）；双精度约 10¹⁰ 倍后需要扰动法或高精度运算。'],
+  ext:['Logistic 映射（已实现）','DLA 随机分形（已实现）','Newton 分形；IFS 与 Barnsley 蕨','盒计数维数'],
+  app:['分形天线（多频段、小尺寸）','地形、纹理的程序生成；IFS 图像压缩','用分形维数表征粗糙表面、裂纹、海岸线']},
+ logistic:{eq:'xₙ₊₁ = r xₙ(1 − xₙ)　　λ = lim (1/N) Σ ln|r(1 − 2xₙ)|',
+  core:['不动点 x* = 1 − 1/r，导数 f′(x*) = 2 − r；|2 − r| < 1，即 1 < r < 3 时稳定。离散系统的判据是 |乘子| < 1，对应连续系统的 Re λ < 0。','r = 3 时第一次倍周期分岔，之后 2 → 4 → 8 …，相邻分岔间距之比趋于 δ ≈ 4.669（Feigenbaum 常数）。这个常数适用于具有二次极值等条件的一类光滑单峰映射；其他系统是否属于同一普适类须另作分析。','倍周期累积于 r ≈ 3.5699，之后进入混沌，但混沌区里有周期窗口，最明显的是 r = 1 + √8 ≈ 3.828 的周期 3（Li–Yorke："周期 3 蕴含混沌"）。','Lyapunov 指数 λ > 0 表示邻近轨道平均按 e<sup>λn</sup> 分离；r = 4 的典型轨道有 λ = ln 2，特殊周期轨道须另算。','与 08 是同一族映射：c = r(2 − r)/4。'],
+  ea:['生态学种群模型（May 1976）','混沌伪随机数','Feigenbaum 普适性与重整化群','Hénon 映射、标准映射等二维映射']},
+ double:{eq:'两节无质量杆、端点质量；由 Lagrange 方程得到 θ₁、θ₂ 耦合的二阶 ODE',
+  core:['状态是四维的（两角、两角速度）。无驱动、无阻尼时能量守恒；在正则坐标 (q,p) 中相空间体积也守恒（Liouville），所以没有吸引子，轨迹在能量面上游走。','低能量时近似两个耦合线性振子，即两个简正模态；高能量时出现混沌。混沌取决于状态区域，不是整个系统"是"或"不是"。','初值差 10⁻⁶ 的分离曲线可显示有限时间放大，并在达到系统尺度后饱和。本页没有反复重归一化，不能把显示斜率直接当作渐近最大 Lyapunov 指数。','本页用 RK4，需检查步长减半和能量漂移。长期研究可用适合该 Hamiltonian 的辛或变分积分器；双摆动能含位置耦合，不能直接套用最简单的速度 Verlet。'],
+  ea:['机械臂动力学：同一套 Lagrange 方程','三体问题','辛积分与分子动力学','KAM 理论：哪些周期运动在扰动下保留']},
+ driven:{eq:'θ̈ + γθ̇ + sin θ = A cos(ωt)　　Poincaré 映射 P：每个驱动周期 2π/ω 取一次 (θ, ω)',
+  core:['自治二维系统不可能混沌（Poincaré–Bendixson 定理）。加上周期外力后，驱动相位成为第三个状态，混沌才成为可能。','Poincaré 截面把连续运动变成离散映射 P：周期 1 响应是 P 的一个不动点，周期 2 是两个点，混沌是分形状的点集。','有阻尼时相空间体积收缩，存在吸引子，这一点与双摆不同。','沿合适的驱动参数路径可能出现倍周期级联；本页提供单参数交互，尚未扫描并定位整条级联。'],
+  ea:['Josephson 结、锁相环电路（同一方程）','Duffing 振子；结构振动中的次谐波共振','船舶横摇的参数共振']},
+ lorenz:{eq:'ẋ = σ(y − x)　　ẏ = x(ρ − z) − y　　ż = xy − βz　　（σ = 10，ρ = 28，β = 8/3）',
+  core:['来自 Rayleigh–Bénard 对流的三模态截断：x 是对流卷强度，y、z 是温度分布偏差。','平衡点：原点（ρ < 1 时稳定，对应导热）与 C± = (±√(β(ρ−1)), ±√(β(ρ−1)), ρ − 1)（对流态）。C± 在 ρ ≈ 24.74 通过亚临界 Hopf 分岔失稳；ρ = 28 时所有平衡点都不稳定，轨迹落在奇怪吸引子上。','相体积收缩率是常数 −(σ + 1 + β)，吸引子体积为零；标准参数下数值 Lyapunov 维数约 2.06。','最大 Lyapunov 指数约 0.9。可预测时间 ≈ (1/λ) ln(容许误差 / 初始误差)：把初始误差缩小 1000 倍，只能多预测 ln 1000 / λ ≈ 7.7 个时间单位。','z 的相邻极大值满足 zₙ₊₁ ≈ f(zₙ)，返回点云可用近似一维曲线帮助理解，不是对完整三维流的精确替代。'],
+  ea:['天气可预测性与集合预报','混沌同步与保密通信','储备池计算、RNN 时间序列预测的标准测试','Rössler 系统、Chua 电路']},
+ gray:{eq:'∂u/∂t = Dᵤ∇²u − uv² + F(1 − u)　　∂v/∂t = Dᵥ∇²v + uv² − (F + k)v',
+  core:['u 是持续补给的原料，v 是自催化产物（u + 2v → 3v）；F 是补给率，k 是移除率。','与 01 不同：许多图案出现在均匀态线性稳定的参数区，要靠有限振幅扰动触发，属于非线性局域结构。','(F, k) 平面上图案类型分区明显（Pearson 1993 分类）：斑点、条纹、迷宫、自复制斑点、混沌斑。','自复制机制：斑点长大后中心原料耗尽，于是分裂成两个。'],
+  ea:['化学斑图实验（FIS 反应）','纹理合成','与 Lenia "人工生物"的对比','Brusselator、Schnakenberg 等反应—扩散模型']},
+ excitable:{eq:'∂u/∂t = (1/ε) u(1 − u)(u − (v + b)/a) + ∇²u　　∂v/∂t = u − v',
+  core:['ε 很小：u 变化快（激发），v 变化慢（恢复）。','可激发：静息态稳定，小扰动衰减；超过阈值的扰动会引起一次大幅"发放"，之后是不应期，不能立刻再次激发。','波只向前传播，相撞的两列波互相湮灭，不像线性波那样叠加穿过。','断开的波前绕自由端卷曲，形成螺旋波；螺旋中心是相位奇点，旋转周期由不应期决定。','与 01 同属反应—扩散，区别在局部动力学：01 选出静态波长，这里传播行波。'],
+  ea:['心脏电传导、折返与心室颤动','神经动作电位（Hodgkin–Huxley / FitzHugh–Nagumo）','BZ 化学反应的螺旋','Greenberg–Hastings 可激发元胞自动机']},
+ vicsek:{eq:'θᵢⁿ⁺¹ = arg Σⱼ∈邻居 e<sup>iθⱼ</sup> + Uniform(−η/2, η/2)　　φ = |Σ e<sup>iθ</sup>| / N',
+  core:['每步取邻居（含自己）的平均方向，再加均匀噪声 η，然后恒速前进。','序参量 φ：低噪声时接近 1（集体运动），高噪声时接近 0。','这是非平衡系统。有限温度、短程相互作用的无限二维平衡 XY 模型没有真正长程有序（Mermin–Wagner），运动的 Vicsek 粒子却可以，因为运动把方向信息带向远方（Toner–Tu）。','标准度量邻域 Vicsek 模型在合适密度与速度下可出现行进密度带和不连续转变；有限粒子数、观察时长和规则变体会改变可见行为。'],
+  ea:['活性物质：细菌集群、细胞集体迁移','机器人集群一致性协议','Boids 的统计物理版本']},
+ kuramoto:{eq:'dθᵢ/dt = ωᵢ + (K/N) Σ sin(θⱼ − θᵢ) = ωᵢ + K r sin(ψ − θᵢ)　　r e<sup>iψ</sup> = (1/N) Σ e<sup>iθⱼ</sup>',
+  core:['全连接耦合可以等价为每个振子只和平均场 (r, ψ) 耦合，平均场又由所有振子决定，需要自洽求解。','对无限数量、全连接、对称单峰频率分布的经典模型，K꜀ = 2 / (π g(0))。高斯标准差 σ 时约为 1.6σ；本页 80 个振子有有限尺寸涨落，不会出现精确的零序参量和尖锐阈值。','部分同步：只有 |ωᵢ − Ω| ≤ K r 的振子锁频，偏离太远的继续漂移。','与 Vicsek 同样平均 e<sup>iθ</sup>：Kuramoto 在相位空间、全连接；Vicsek 在实空间、局部邻居。'],
+  ea:['电网发电机同步与稳定','心脏起搏细胞、萤火虫同步闪光','神经振荡与脑节律','Huygens 摆钟同步；激光阵列']},
+ ca:{eq:'邻域码 k = 4aᵢ₋₁ + 2aᵢ + aᵢ₊₁　　aᵢⁿ⁺¹ = (rule >> k) & 1',
+  core:['3 格邻域共 8 种组合，每种输出 0 或 1，所以有 2⁸ = 256 条规则；规则号的二进制位就是查找表。','Wolfram 四类：均匀、周期、混沌（Rule 30）、复杂（Rule 110，有局域移动结构）。','Rule 110 已被证明图灵完备（Cook 2004）：一维、二态、最近邻就足以做通用计算。','Rule 30 中心列能通过多种随机性检验，曾被用作伪随机数发生器。','时空图把时间画成纵轴，一维系统的整个历史就是一张二维图。'],
+  ea:['芋螺等贝壳花纹与 Rule 30 类图案','流密码','交通流 Rule 184 与 Nagel–Schreckenberg 模型']},
+ dla:{eq:'随机游走 → 接触团簇即粘附　　游走者到达概率 φ 满足 ∇²φ = 0　　M ∝ R<sup>1.71</sup>',
+  core:['粒子随机游走，碰到团簇就粘住，不可逆。','尖端屏蔽：游走者很难进入枝杈之间的深沟，伸得最远的尖端最容易接到新粒子。这是一种生长失稳，正反馈让枝条越长越细。','到达概率满足 Laplace 方程，生长速度 ∝ |∇φ|，所以 DLA 与粘性指进、电沉积、介电击穿属于同一类"Laplace 生长"。','二维 DLA 的分形维数约 1.71：质量 M ∝ R<sup>1.71</sup>，比实心圆盘（维数 2）稀疏。'],
+  ea:['电化学沉积、锂电池枝晶','Hele-Shaw 粘性指进','矿物树枝石；Lichtenberg 放电图案','凝固过程中的枝晶（相场模型）']},
+ sand:{eq:'hᵢ ≥ 4 ⇒ hᵢ ← hᵢ − 4，四个邻居各 +1；边界外的颗粒流失',
+  core:['一次加一粒；某格达到 4 就倾倒，可能引起连锁雪崩。','自组织临界：在慢驱动、开放耗散等规则下，系统在大系统极限出现无特征尺度的雪崩统计。有限网格有截断；BTW 多重标度使单一幂律指数的描述需要谨慎。','Abelian 性质（Dhar 1990）：多个不稳定格的倾倒顺序不影响最终结果，这一点与必须同步更新的生命游戏不同。','"慢输入、快释放、局部阈值"是许多突然爆发现象的共同结构。有限样本的直方图不能证明幂律。'],
+  ea:['地震 Gutenberg–Richter 定律的类比','森林火灾模型','神经元雪崩','电网连锁故障']},
+ ising:{eq:'H = −J Σ⟨ij⟩ sᵢsⱼ　　ΔE = 2sᵢ Σ 邻居 sⱼ　　P(接受) = min(1, e<sup>−ΔE/T</sup>)',
+  core:['能量偏好相邻自旋一致，温度带来涨落。Metropolis：能量下降必接受，上升按 e<sup>−ΔE/T</sup> 接受，长期采样服从 Boltzmann 分布。','无限二维方格、零外场、J=kB=1 时 T꜀ = 2 / ln(1 + √2) ≈ 2.269（Onsager）。本页有限网格只呈现平滑过渡与涨落；低温需足够平衡时间。','临界点附近关联长度发散，磁畴是各种尺度的分形团簇，弛豫变慢（临界慢化）。','动画是 Markov 链的采样过程，不是真实的物理时间演化。'],
+  ea:['铁磁相变；格气模型、二元合金','Hopfield 网络与 Boltzmann 机（能量函数相同）','图像去噪；模拟退火','量子退火中的 Ising 形式组合优化']},
+ cylinder:{eq:'fᵢ(x + eᵢΔt, t + Δt) = fᵢ − (fᵢ − fᵢᵉᑫ)/τ　　ν = (τ − ½)/3　　Re = UD/ν',
+  core:['LBM 不直接解 NS 方程，而是在格点上演化 9 个方向的粒子分布：碰撞（BGK 弛豫到平衡分布）+ 迁移。宏观上恢复弱可压 NS 方程。','雷诺数、阻塞比与边界共同决定尾流。理想无界二维圆柱约 Re=47 开始周期脱落；St=fD/U 随 Re 和条件变化，不能把 0.2 当作本页已验证常数。','涡脱落是自激振荡（极限环），不需要周期外力。','边界决定现象：入口、出口、固壁、障碍物的处理方式都会影响结果。本页以入口峰值速度定义 Re≈89，换用抛物线平均速度约为 60。已检查交替尾流，但未测定临界 Re 或做 Strouhal、阻力和网格收敛基准。'],
+  ea:['烟囱、斜拉索、海洋立管的涡激振动与锁频','涡街流量计','多孔介质、多相流（LBM 的优势领域）']},
+ convection:{eq:'∂ω/∂t + u·∇ω = ν∇²ω + gα ∂T/∂x　　∂T/∂t + u·∇T = κ∇²T　　−∇²ψ = ω',
+  core:['Boussinesq 近似：只在浮力项中保留密度随温度的变化。温度的水平差异产生旋转。','控制参数 Rayleigh 数 Ra = gαΔT H³ / (νκ)：浮力驱动与黏性、热扩散之比。导热态的小扰动在超过相应临界值后可能增长为对流卷；临界值依赖边界和允许的波长。','临界值由线性稳定性给出：理想无限水平层、定温自由滑移顶底 Ra꜀ = 27π⁴/4 ≈ 657.5，临界 k꜀H = π/√2；有限周期区域只允许离散波数，数值临界值还受网格影响；无滑移壁 Ra꜀ ≈ 1708。这又是一个由失稳选波长的问题；本页含初始滚动扰动，未数值测定精确临界值。','传热效率用 Nusselt 数衡量；Ra 再高，卷会振荡乃至湍流。Lorenz 系统就是这个问题截断到 3 个模态。'],
+  ea:['大气与地幔对流','太阳表面的米粒组织','电子设备散热','增材制造熔池中浮力流与 Marangoni 流的竞争']},
+ cart:{eq:'(M + m)ẍ + ml(θ̈ cos θ − θ̇² sin θ) = F（θ 从下垂算起）　　ẋ = Ax + Bu，u = −Kx，K 由 Riccati 方程求出',
+  core:['欠驱动：两个自由度 (x, θ) 只有一个输入 F，摆只能通过小车加速度间接控制。','线性化后四个状态；可控性矩阵 [B AB A²B A³B] 满秩，所以单一输入也能镇定全部状态。','LQR 最小化 Σ(xᵀQx + uᵀRu)，由离散 Riccati 方程求增益 K。设计变量从"极点位置"变成"权重 Q、R"。','摆起：线性控制在下垂处无效。能量法把摆的能量推向直立时的能量（Åström–Furuta），接近直立后切换到 LQR；切换点必须落在 LQR 的吸引域内。','直立线性化下，小车位置 / 输入力的传递函数有右半平面零点：输出选择会影响零点与控制难度，不能仅凭摆角方向判断。'],
+  ea:['Segway 平衡车、火箭垂直着陆、起重机防摇','模型预测控制（MPC）','强化学习 CartPole 基准','LQG：加上 Kalman 滤波器的输出反馈']},
+ nca:{eq:'pᵢ = [sᵢ, 四邻均值]　　sᵢ ← sᵢ + 0.25·V tanh(W pᵢ)　　L = MSE(可见通道, 目标)',
+  core:['每个格子存一个状态向量；更新 = 感知（自己 + 4 邻均值）→ 小网络 → 残差增量。所有格子共享同一组权重，结构上就是一层卷积网络反复作用。','训练：展开 20 步，损失是最终可见通道与目标的均方误差，用时间反向传播（BPTT）求梯度、Adam 更新。','这是逆问题：Life、Lenia 是先写规则看结果；NCA 是先定结果，反求规则。','BPTT 与离散最优控制伴随法共享反向链式求导结构。','本页只训练固定步数；要长期稳定和自修复，论文还用了样本池和损伤训练。'],
+  ea:['形态发生与再生的计算模型','自修复纹理','分布式机器人自组装','可微物理模拟']},
+ aco:{eq:'P(i → j) ∝ τᵢⱼ^α · (1/dᵢⱼ)^β　　τ ← (1 − ρ)τ + Σ 每只蚂蚁 1/L',
+  core:['每只蚂蚁按信息素 τ 和距离启发 1/d 的概率选下一个城市；走完后按路线长度的倒数沉积，所有边按比例 ρ 蒸发。','正反馈（好路线被更多地走）+ 负反馈（蒸发遗忘旧路线）+ 随机探索，三者平衡决定收敛速度与陷入局部最优的风险。','与 05 对比：兰顿蚂蚁写入不会消失的颜色、规则确定；ACO 写入会挥发的信息素、选路概率化，并有明确目标。','旅行商问题是 NP 难问题；ACO 是启发式算法，不保证全局最优。'],
+  ea:['物流车辆路径、排程','通信网络路由（AntNet）','与 PSO、遗传算法、模拟退火比较']},
+ physarum:{eq:'粒子：前 / 左 / 右感知 → 转向 → 前进 → 沉积　　痕迹场：T ← (1 − d)·(3×3 平均)',
+  core:['两层结构：上千个粒子 + 一个连续的痕迹场。粒子读写的是场，而不是彼此。','粒子跟随浓度梯度，浓度又由粒子沉积，正反馈使路径收缩成线状网络。这是与趋化模型（Keller–Segel）机制相似的粒子模型，但不是该 PDE 的严格离散化。','与 ACO 同为 stigmergy，但没有"路线长度"这样的显式目标，网络形态由探头距离、角度、衰减率等局部参数决定。','痕迹场的扩散与衰减就是反应—扩散方程中的一个场，"反应"由粒子完成。'],
+  ea:['真实粘菌重现东京周边铁路网（Tero 等，2010）','交通与通信网络设计','用粘菌启发算法重建宇宙纤维结构']}
+};
+function list(a){return '<ul>'+a.map(x=>'<li>'+x+'</li>').join('')+'</ul>'}
+let ch='';
+for(const c in CL){const ids=Object.keys(N).filter(k=>N[k].c===c).sort((a,b)=>(N[b].b-N[a].b)||(ORDER.indexOf(a)-ORDER.indexOf(b)));
+ ch+='<div class="clhead" id="cl-'+c+'" style="color:'+cv(c)+'"><h3>'+CL[c].n+'</h3><p>'+CL[c].d+'</p></div><div class="cards">';
+ for(const id of ids){const n=N[id],k=CARD[id];
+  ch+='<article class="card'+(n.b?'':' ext')+'" id="c-'+id+'" style="color:'+cv(c)+'"><div class="num">'+(n.b?'基础实验':GL[id])+'</div><h3>'+n.t+'<span class="kind">学习顺序 '+(ORDER.indexOf(id)+1)+'</span></h3>'+(k.cls?'<p class="small">'+k.cls+'</p>':'<p class="small">'+n.d+'</p>')+'<div class="eq">'+k.eq+'</div>';
+  if(n.b)ch+='<div class="grid3"><div><h4>核心知识点</h4>'+list(k.core)+'</div><div><h4>延伸</h4>'+list(k.ext)+'</div><div><h4>应用</h4>'+list(k.app)+'<p><a href="'+n.h+'">打开实验 →</a></p></div></div>';
+  else ch+='<div class="grid2"><div><h4>核心知识点</h4>'+list(k.core)+'</div><div><h4>延伸与应用</h4>'+list(k.ea)+'<p><a href="'+n.h+'">打开模型 →</a></p></div></div>';
+  ch+='</article>'}
+ ch+='</div>'}
+document.getElementById('cards').innerHTML=ch;
+const search=document.getElementById('model-search');
+search.addEventListener('input',()=>{const q=search.value.trim().toLocaleLowerCase();let count=0;
+ document.querySelectorAll('#cards .cards').forEach(group=>{let shown=0;
+  group.querySelectorAll('.card').forEach(card=>{const text=card.textContent.toLocaleLowerCase();const match=!q||(/^[a-z0-9]+$/.test(q)?new RegExp('(^|[^a-z0-9])'+q).test(text):text.includes(q));card.hidden=!match;if(match){shown++;count++}});
+  group.hidden=shown===0;group.previousElementSibling.hidden=shown===0});
+ document.getElementById('search-count').textContent=q?'找到 '+count+' / 26 个模型'+(count?'':'；可换个词试试'):'共 26 个模型'});
+
+document.addEventListener('click',ev=>{if(search.value&&ev.target.closest('a[href^="#c-"],a[href^="#cl-"]')){search.value='';search.dispatchEvent(new Event('input'))}});
+
+/* ---------- learning path ---------- */
+const STAGES=[
+ ['反馈与稳定','pend cart','从极点、相图、反馈开始。先看直接驱动的倒立摆，再看只能推小车的欠驱动系统：LQR 用 Riccati 方程求增益，能量法负责摆起，两种控制器在吸引域内切换。','接下一段：线性化判稳定，在离散迭代里就变成 |乘子| < 1。'],
+ ['离散映射与分岔','logistic fractal','Logistic 映射是最小的非线性系统：不动点、倍周期分岔、混沌、Lyapunov 指数都能用一个式子讲清楚。代换 c = r(2−r)/4 后，它的分岔图就是 Mandelbrot 集实轴上的结构，再把视角扩展到整个复平面。','接下一段：Poincaré 截面把连续运动化为另一种离散返回映射。'],
+ ['连续时间的混沌','driven double lorenz','受迫摆用 Poincaré 截面观察周期与复杂轨道；倍周期级联须沿合适参数路径另做扫描；双摆是守恒混沌，没有吸引子；Lorenz 是耗散混沌，有奇怪吸引子。三者对照，掌握"敏感依赖""吸引子""Lyapunov 时间"这几个概念。','接下一段：Lorenz 方程本来就是对流方程的三模态截断。'],
+ ['流体与对流','convection fluid cylinder','先看 Rayleigh–Bénard：Ra 超过临界值，导热态失稳，出现对流卷，与 Lorenz 直接对应。再回到没有固壁的周期区域 06 二维流体，理解涡量—流函数方法；最后加入障碍物，看圆柱涡街，并了解其背后的 Hopf 分岔。','接下一段：对流卷的宽度由失稳选出，这正是 Turing 斑图的核心问题。'],
+ ['斑图与自组织场','turing gray excitable lenia','01 的 Turing 失稳用"每个波数一组极点"解释花纹间距；Gray–Scott 说明有些花纹不是线性失稳产生的；可激发介质从静态花纹变成行波和螺旋波；Lenia 把邻域从 ∇² 换成非局部核。','接下一段：Lenia 是生命游戏的连续化，现在反过来看离散版本。'],
+ ['离散规则与计算','life ca ant sand','去掉连续性，只剩精确规则。生命游戏、一维元胞自动机、兰顿蚂蚁说明简单规则也能图灵完备、长期行为难以预测；沙堆引出"临界态"，并说明只有某些规则才允许任意顺序更新。','接下一段：从固定格点上的规则，到会移动的个体。'],
+ ['集体行为与统计物理','boids vicsek kuramoto ising dla','Boids → Vicsek 精简到只剩对齐；Kuramoto 把对齐换成相位同步；Ising 是平衡态的有序—无序，与沙堆对比两种临界；DLA 把随机游走与分形接起来。','接下一段：个体不只是响应环境，还写入环境，甚至规则本身可以被优化或训练。'],
+ ['痕迹、优化与学习','aco physarum nca','蚁群优化与粘菌模型通过环境痕迹实现集体计算；NCA 用梯度下降训练局部规则，把 Life / Lenia 变成一个学习问题，并用 BPTT 与第 1 阶段的最优控制接上。','这一段之后，可继续学习 AI；独立 AI 课程尚未建设。']
+];
+document.getElementById('path').innerHTML=STAGES.map((s,i)=>{const ids=s[1].split(' ');
+ return '<li><b>阶段 '+(i+1)+'　'+s[0]+'</b><div class="seq">'+ids.map(id=>(ORDER.indexOf(id)+1)+'. <a href="'+N[id].h+'">'+N[id].t+'</a>').join('　→　')+'</div><p class="small">'+s[2]+'</p><p class="why">'+s[3]+'</p></li>'}).join('');
+</script>
+</body>
+</html>
