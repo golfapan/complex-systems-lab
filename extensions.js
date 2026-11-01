@@ -22,6 +22,98 @@ nca:{title:'NCA：实际学习一个局部更新规则',make:()=>new NeuralCA(),
 aco:{title:'蚁群优化：用信息素寻找短回路',make:()=>new M.ACO(),batch:1,param:[['evap','信息素蒸发比例',.05,.8,.01]],formula:'P(i→j) ∝ τᵢⱼ / dᵢⱼ³；τ←(1−ρ)τ + Σ每只蚂蚁 1/L',question:'不枚举所有路线，能否通过重复探索逐渐改进巡回路径？',model:'22个固定城市，每代24只蚂蚁；访问每城一次后返回起点。',method:'按概率构造完整路线；蒸发后按路线长度反比增强信息素；始终保存历史最短路线。',obs:['看早期交叉边是否逐步消失。','比较高低蒸发率：探索和过早集中之间的关系。'],limits:'启发式搜索；历史最好长度单调改进不代表已达到全局最优。',link:'接原05的环境痕迹与04的集体信息。',ref:'aco',plot:'历史最好巡回长度，城市坐标单位。'},
 physarum:{title:'粘菌启发的感知—沉积粒子模型',make:()=>new M.Physarum(),batch:2,param:[['decay','痕迹每步衰减',.01,.15,.001]],formula:'前／左／右感知 → 转向 → 移动 → 沉积；痕迹←(1−衰减)·3×3平均',question:'许多只读取并写入局部痕迹的粒子，如何组织成线状网络？',model:'1300粒子、112²周期网格，3个固定吸引源；传感器距离7、角度±0.6，单步转角0.35。',method:'顺序智能体沉积后对场做同步扩散和衰减；确定的随机种子。',obs:['比较强衰减与弱衰减的线宽、网络连通性。','观察吸引源附近与远处的通道差异。'],limits:'Jones式机制的简化变体，非生物粘菌的完整模型，不保证最短路、Steiner树或运输效率最优。',link:'接原05：颜色痕迹变成会扩散、会挥发的环境场。',ref:'phys',plot:'平均环境痕迹浓度。'}
 };
+const experimentStories={
+  "logistic": [
+    "池塘里的鱼，为什么会忽多忽少？",
+    "设想一个池塘：鱼少时，食物充足，数量容易增长；鱼多时，又要争夺有限的资源。如果每一年都按同一条简单规则更新，最后会稳定下来吗？把增长能力调高，你可能看到年年交替的数量，甚至越来越难预测的起伏。这里用一个比例代表种群，探索增长与拥挤之间的竞争，并不拟合某个真实池塘。",
+    "先猜一猜：繁殖能力越强，数量就会越稳定吗？依次试 r=2.9、3.2、3.5 和3.9。"
+  ],
+  "double": [
+    "两只双摆，能一直跳同一支舞吗？",
+    "把一根摆的末端再接上一根摆，同时放开两套几乎相同的装置。起初它们像镜子里的彼此，过一会儿却可能各跳各的。规则没有换，也没有人偷偷推它们；差别藏在最初那个极小的角度里。这个实验让你看见：知道运动规律，和长期准确预报运动，是两个不同的问题。",
+    "先猜一猜：两套摆大幅分开之前，会不会先有一段几乎重合的时间？先看动画，再看距离曲线。"
+  ],
+  "driven": [
+    "每次都按节拍推，秋千就会按节拍摆吗？",
+    "推秋千时，你会按节奏给它一点力。直觉上，稳定的节拍应该带来稳定的摆动，可如果推动足够强，摆可能翻转、错拍，甚至出现复杂运动。这里用正弦外力定时推动一个有阻尼的摆，再像定时拍照一样，每隔一个驱动周期记录一次状态。",
+    "先猜一猜：周期性的输入，是否一定产生同周期的输出？比较 F=0.3 和1.2时，下方采样点的形状。"
+  ],
+  "lorenz": [
+    "天气按物理规律走，为什么还难预报？",
+    "想象两次天气计算，唯一差别是起点有一个小到几乎看不见的偏差。它们会永远接近吗？Lorenz 系统把这个问题压缩成三个相互作用的变量：轨迹在像蝴蝶双翼的区域里绕行，相近的起点却可能先后走向不同的一翼。这是低维模型里的可预测性问题，并不是在这里真的预测天气。",
+    "先猜一猜：两条轨迹分开后，还会不会都留在同一片双翼形区域？跟着两种颜色看一会儿。"
+  ],
+  "gray": [
+    "不用画笔，斑点能自己分裂吗？",
+    "想象一张会发生反应的薄膜：一种物质不断被补充，另一种由局部反应产生，两者又向周围扩散。你只在中心留下一个小扰动，随后不再作画。这个小区域能不能扩张、分裂成许多斑点，或者连成迷宫？Gray–Scott 模型让“反应配方”成为画笔，而你只改变补给和移除的速度。",
+    "先猜一猜：同一块起点，换一点补给量，会只是长得快些，还是连形状也会变？一次只改一个参数。"
+  ],
+  "excitable": [
+    "体育场的人浪，为什么不会一直举着手？",
+    "设想看台上每个人看到邻座起身就跟着起身，但坐下后需要休息一会儿，不能立刻再来一次。这样一个简单过程就能把动作沿看台传下去。可激发介质也有“激发—恢复”的节奏；在二维平面上，断开的波头还可能绕着转。本页用简化方程观察这类传播，并不模拟具体的人群或心脏。",
+    "先猜一猜：刚刚经过波浪的区域，为什么不能立刻再次被激发？追踪一个波头和它后面的恢复区。"
+  ],
+  "vicsek": [
+    "大家都只看邻居，还能走向同一个方向吗？",
+    "想象广场上许多人各自向前走：没有领队，只是不时看看附近的人，把自己的方向向大家靠拢，同时又有一点走偏。只靠这种局部妥协，整个群体会不会逐渐一起走？这里把人简化成恒速粒子，把走偏变成角度噪声，看看共同方向能否顶住扰动。",
+    "先猜一猜：一点点噪声会让队伍立刻散掉吗？比较 η=0.3 和5，再看朝向一致度。"
+  ],
+  "kuramoto": [
+    "一群各走各拍的节拍器，怎样合拍？",
+    "想象一群节拍器，快慢各不相同。如果完全互不影响，它们很快就各打各的拍子；如果每个都能稍微被其他节奏拉动，会不会慢慢合拍？Kuramoto 模型先不管节拍器的机械细节，只保留每个节奏走到哪一拍，以及彼此拉近的强度。圆上的点，就是这些不同步的时钟。",
+    "先猜一猜：互相影响要多强，才会出现一群靠拢的点？从 K=0 调到2，观察同步指标。"
+  ],
+  "ca": [
+    "只有一排灯，能写出多复杂的图案？",
+    "给你一排只会亮灭的小灯。每盏灯下一刻的状态，只取决于自己和左右邻居三个开关；全部规则只需要填八个答案。把每一刻的灯排往下抄一行，时间就成了一张图。有的规则画出整齐三角形，有的却像噪声。同样短的一张规则表，为什么能带来如此不同的世界？",
+    "先猜一猜：从一个亮点出发，Rule 30、90 和110 哪个最像随机图？切换后从顶部往下看。"
+  ],
+  "dla": [
+    "没人设计的枝条，为什么越长越分叉？",
+    "想象一颗颗粒子在平面上乱走，碰到中央已有的团块就粘住，不再离开。没有谁指定哪里该长一根枝，团块却可能逐渐长出分叉。突出的尖端容易遇到新粒子，藏在枝间的凹处则不容易被走到。随机的碰撞，能不能留下看起来像珊瑚的形状？",
+    "先猜一猜：下一颗粒子更容易粘在尖端，还是深入凹槽？观察几个突出部位如何继续生长。"
+  ],
+  "sand": [
+    "最后那一粒沙，为什么会引发一大片？",
+    "你慢慢往沙堆上加沙，大多数时候只多了一小点，偶尔却突然滑下一片。这个方格沙堆把问题变得更简单：一格积够四粒，就向四邻各分一粒；邻居满了也继续分。同样只加一粒，影响范围为什么能差这么多？它让我们观察局部阈值怎样连成一串反应。",
+    "先猜一猜：加沙的位置很小，是否意味着影响也一定很小？等几次雪崩，对照下面大小不同的事件统计。"
+  ],
+  "ising": [
+    "磁铁里面的小方向，为什么有时能站成一队？",
+    "想象每个格子都有一枚只能朝上或朝下的小指针。邻居喜欢方向一致，温度带来的扰动却不断让指针改变。冷的时候，大片同向区域可能长出来；热的时候，整齐队伍又难维持。Ising 模型把磁性中的合作与扰动，压缩成一个可以改变温度的棋盘。",
+    "先猜一猜：温度升高后，是每枚指针都变弱了，还是大家更难保持一致？比较 T=1 和4。"
+  ],
+  "cylinder": [
+    "桥墩后面的水，为什么会左右摇摆？",
+    "看一根桥墩挡在水流中：水从两侧绕过去，后面却不一定留下一条笔直的尾巴，有时会交替卷出一串涡。障碍物明明没动，尾部为什么自己开始左右摆？这里用圆柱和简化流场，把这个问题缩到画面里。让来流走过足够长的时间，再看尾涡和测点信号。",
+    "先猜一猜：左右对称的障碍物，会不会产生随时间交替的尾流？加快计算，观察圆柱后方。"
+  ],
+  "convection": [
+    "锅底热起来，水为什么自己翻动？",
+    "从底下加热一层液体，热量可以先慢慢传上去；在合适条件下，较热的流体上升、较冷的流体下沉，整层开始循环。没有勺子，谁在搅动？本页让温度影响浮力，再让流动搬运温度，并加入微弱初始扰动，看看这种相互作用如何放大或衰退。",
+    "先猜一猜：把 Ra 调高，原先微弱的滚动会变强还是变弱？比较温度颜色、速度箭头和动能曲线。"
+  ],
+  "cart": [
+    "手不能碰摆，只推小车也能把它立起来吗？",
+    "现在把倒立摆放到一辆小车上，但取消摆轴上的电机：你只能左右推车，不能直接转动摆。要让下垂的摆站起来，先得像荡秋千一样积累能量，接近竖直后再及时切换到细小纠正。一个装置为什么需要两种控制策略？这次你能看到“摆起来”和“站得住”之间的交接。",
+    "先猜一猜：一直使用直立附近的平衡控制，能从下垂起点摆起来吗？点“从下垂摆起”，留意控制方式切换。"
+  ],
+  "nca": [
+    "不告诉每格该画哪里，能学会长出一个圆吗？",
+    "想象一群小格子，每格只知道自己和邻居的状态，大家共用同一个小网络。我们不逐格告诉它们怎么画，只在演化20步后比较结果与目标圆盘，再调整共同规则。反复练习后，从一个种子能不能长出目标？这里训练的是小型神经细胞自动机，损失下降可以观察，但长期保持形状和损伤修复并不保证。",
+    "先猜一猜：学会第20步长得像圆，等不等于以后永远是圆？先看训练进展，再试擦除和继续演化。"
+  ],
+  "aco": [
+    "一群没地图的蚂蚁，怎样帮快递员找路线？",
+    "假设快递员要走遍所有城市再回起点，路线太多，无法逐条试完。让许多虚拟蚂蚁各走一圈，短路线留下更强的信息素，旧痕迹又慢慢挥发，下一批就更容易沿好路线探索。这样的集体试错能不能不断缩短行程？它是搜索办法，找到越来越好的路不等于证明已找到最短路。",
+    "先猜一猜：如果好路线的痕迹几乎不挥发，会更聪明，还是太早认定一条路？调节蒸发比例比较。"
+  ],
+  "physarum": [
+    "没有总设计师，网络怎样自己长出来？",
+    "设想许多小粒子在暗处走动，只能闻到前方、左边和右边的痕迹，走过后又留下自己的痕迹。痕迹会扩散、挥发，几个吸引源则不断把它们拉向特定位置。这些局部选择能否慢慢织出线状通道？本页借用粘菌启发的机制，让网络从行动与环境的循环里出现。",
+    "先猜一猜：痕迹消失得太快或太慢，网络会有什么不同？调衰减参数，观察线宽和连接。"
+  ]
+};
 const world=$('#world'),ctx=world.getContext('2d'),plot=$('#plot'),pc=plot.getContext('2d'),off=document.createElement('canvas'),oc=off.getContext('2d');let mode='',model,running=true,history=[],bif=null,lastSample=0;
 const color={green:'#a7d8b6',pink:'#efacc5',blue:'#9bc8ee',bg:'#11261f',text:'#e3eee6'};
 function text(c,str,x,y,size=15){c.fillStyle=color.text;c.font=`${size}px system-ui`;c.fillText(str,x,y);}
@@ -54,7 +146,7 @@ else if(mode==='physarum'){field(model.field,model.n,model.n,.09);for(const[x,y]
 $('#metrics').textContent=metric();plotDraw();}
 function rebuild(values={}){model=cfg[mode].make();for(const[k,v]of Object.entries(values))model[k]=v;if(mode==='logistic'){model.lyap=model.lyapunov();if(!bif){bif=document.createElement('canvas');bif.width=900;bif.height=540;const c=bif.getContext('2d');c.fillStyle=color.bg;c.fillRect(0,0,900,540);c.fillStyle='#a7d8b680';for(const[r,x]of M.Logistic.bifurcation(800))c.fillRect((r-2.5)/1.5*900,540-x*540,1,1);}}history=[];lastSample=0;$('#status').textContent='';draw();}
 function parameterValues(){const o={};for(const el of $('#controls').querySelectorAll('input'))o[el.dataset.key]=Number(el.value);return o;}
-function choose(id,scroll=false){if(!cfg[id])id='logistic';mode=id;const g=groups.find(g=>g[2].includes(id)),c=cfg[id];$('#group-name').textContent=`${String(groups.indexOf(g)+1).padStart(2,'0')} / ${g[1]}`;$('#title').textContent=c.title;$('#intro').textContent=c.question;$('#mode').replaceChildren(...g[2].map(k=>{const o=document.createElement('option');o.value=k;o.textContent=cfg[k].title;o.selected=k===id;return o;}));for(const el of $('#groups').children)el.setAttribute('aria-pressed',String(el.dataset.group===g[0]));for(const[key,target]of [['question','#question'],['formula','#formula'],['model','#model-note'],['method','#method'],['limits','#limits'],['link','#connection'],['plot','#plot-note']])$(target).textContent=c[key];$('#observations').replaceChildren(...c.obs.map(t=>{const li=document.createElement('li');li.textContent=t;return li;}));$('#source').replaceChildren();if(c.ref){const a=document.createElement('a');a.href=refs[c.ref][1];a.textContent=refs[c.ref][0];a.target='_blank';a.rel='noopener';$('#source').append('进一步阅读：',a);}$('#controls').replaceChildren();rebuild();for(const[key,label,min,max,step]of c.param||[]){const div=document.createElement('div');div.className='control';const lab=document.createElement('label');lab.htmlFor='p-'+key;lab.textContent=label;const out=document.createElement('output');out.textContent=model[key];lab.append(out);const input=document.createElement('input');input.type='range';input.id='p-'+key;input.dataset.key=key;input.min=min;input.max=max;input.step=step;input.value=model[key];input.addEventListener('input',()=>{out.textContent=input.value;rebuild(parameterValues());});div.append(lab,input);$('#controls').append(div);}$('#action').hidden=!['cart','nca','ca'].includes(id);$('#damage').hidden=id!=='nca';$('#action').textContent=id==='cart'?'从下垂摆起':id==='nca'?'停止／继续训练':'切换 Rule 30 / 110';if(scroll)$('#experiment').scrollIntoView({block:'start',behavior:'smooth'});}
+function choose(id,scroll=false){if(!cfg[id])id='logistic';mode=id;const g=groups.find(g=>g[2].includes(id)),c=cfg[id];$('#group-name').textContent=`${String(groups.indexOf(g)+1).padStart(2,'0')} / ${g[1]}`;$('#title').textContent=c.title;$('#intro').textContent=c.question;const story=experimentStories[id];$('#story-title').textContent=story[0];$('#story-body').textContent=story[1];$('#story-task').textContent=story[2];$('#mode').replaceChildren(...g[2].map(k=>{const o=document.createElement('option');o.value=k;o.textContent=cfg[k].title;o.selected=k===id;return o;}));for(const el of $('#groups').children)el.setAttribute('aria-pressed',String(el.dataset.group===g[0]));for(const[key,target]of [['question','#question'],['formula','#formula'],['model','#model-note'],['method','#method'],['limits','#limits'],['link','#connection'],['plot','#plot-note']])$(target).textContent=c[key];$('#observations').replaceChildren(...c.obs.map(t=>{const li=document.createElement('li');li.textContent=t;return li;}));$('#source').replaceChildren();if(c.ref){const a=document.createElement('a');a.href=refs[c.ref][1];a.textContent=refs[c.ref][0];a.target='_blank';a.rel='noopener';$('#source').append('进一步阅读：',a);}$('#controls').replaceChildren();rebuild();for(const[key,label,min,max,step]of c.param||[]){const div=document.createElement('div');div.className='control';const lab=document.createElement('label');lab.htmlFor='p-'+key;lab.textContent=label;const out=document.createElement('output');out.textContent=model[key];lab.append(out);const input=document.createElement('input');input.type='range';input.id='p-'+key;input.dataset.key=key;input.min=min;input.max=max;input.step=step;input.value=model[key];input.addEventListener('input',()=>{out.textContent=input.value;rebuild(parameterValues());});div.append(lab,input);$('#controls').append(div);}$('#action').hidden=!['cart','nca','ca'].includes(id);$('#damage').hidden=id!=='nca';$('#action').textContent=id==='cart'?'从下垂摆起':id==='nca'?'停止／继续训练':'切换 Rule 30 / 110';if(scroll)$('#experiment').scrollIntoView({block:'start',behavior:'smooth'});}
 for(const[id,title,ids]of groups){const b=document.createElement('button');b.dataset.group=id;b.setAttribute('aria-pressed','false');const n=document.createElement('span');n.textContent=`${String(groups.findIndex(g=>g[0]===id)+1).padStart(2,'0')} / ${ids.length} 个模型`;b.append(n,document.createTextNode(title));b.addEventListener('click',()=>{location.hash=ids[0];});$('#groups').append(b);}
 $('#mode').addEventListener('change',e=>location.hash=e.target.value);window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(cfg[id])choose(id,true);});$('#reset').addEventListener('click',()=>rebuild(parameterValues()));$('#play').addEventListener('click',()=>{running=!running;syncPlay();});function syncPlay(){$('#play').textContent=running?'暂停':'继续';$('#play').setAttribute('aria-pressed',String(running));}
 function advance(){model.step();if(mode==='dla'&&model.stopped){running=false;syncPlay();$('#status').textContent='团簇接近有限计算边缘，已停止。可重新开始。';}const a=mode==='cylinder'?model.rho:mode==='convection'?model.temp:['double','driven','lorenz'].includes(mode)?model.y:mode==='cart'?model.state:mode==='nca'?model.state:[];if(a.some(v=>!Number.isFinite(v))){running=false;syncPlay();$('#status').textContent='计算出现非有限值，已暂停。请重新开始并使用较温和的参数。';}sample();}
