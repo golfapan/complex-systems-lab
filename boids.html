@@ -1,9 +1,102 @@
 <!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="story.css"><title>Boids 鸟群 · 复杂系统实验室</title><link rel="stylesheet" href="lab.css">
+<style>
+.analysis .chapter[id]{scroll-margin-top:100px}.analysis h4{font-size:17px;margin:26px 0 10px}.math-table{max-width:100%;overflow-x:auto;margin:18px 0;border:1px solid var(--line);border-radius:10px}.math-table:focus-visible{outline:3px solid var(--accent)}.math-table table{width:100%;min-width:640px;border-collapse:collapse;font-size:14px}.math-table caption{text-align:left;padding:12px 14px;color:var(--muted)}.math-table th,.math-table td{padding:11px 14px;border-top:1px solid var(--line);text-align:left;vertical-align:top}.math-table th[scope=row]{font-weight:600;min-width:120px}.math-table td{font-variant-numeric:tabular-nums}.analysis .formula{font-family:system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;line-height:2.2}.analysis .formula sub{font-size:.75em}#engineering-links summary{cursor:pointer;line-height:1.7;min-height:44px}#engineering-links summary:focus-visible{outline:3px solid var(--accent);outline-offset:4px}.engineering-reading{padding-left:24px}.engineering-reading>li{margin:24px 0;padding-bottom:16px;border-bottom:1px solid var(--line)}.engineering-reading h4{margin:12px 0 6px}#engineering-links a{overflow-wrap:anywhere}
+</style>
+<link rel="stylesheet" href="model-notes.css">
 <body data-lab="boids"><main><nav><a href="index.html">← 返回 复杂系统实验室</a><a href="continuous.html">Lenia</a><a href="ant.html">兰顿蚂蚁</a><a href="fluid.html">流体</a><a href="pendulum.html">倒立摆</a></nav><header><span class="eyebrow">LOCAL RULES / EXPERIMENT 04</span><h1>Boids · 一群鸟怎样一起飞？</h1><p>没有领头鸟，每只鸟只看附近的伙伴。调节分离、对齐、聚拢，看整体秩序如何出现。</p></header>
 <section class="story-card" aria-label="故事与挑战"><span class="story-label">从一个有趣的问题开始</span><h2>鸟群转弯时，谁在喊口令？</h2><p>傍晚一群鸟突然转向，几乎像同一块会流动的布。可是每只鸟只看得见身边一小部分伙伴，未必知道整群要去哪里。假如你是一只鸟，只遵守三件小事：别撞上、跟邻居朝同一方向、别掉队，整群能自己组织起来吗？在这里没有领队，你可以逐条关掉规则，看看秩序怎样出现，又怎样消失。</p><p class="story-challenge">先猜一猜：只有“别撞上”这一条，能不能让大家一起飞？先试只管避让，再加入对齐。</p></section>
-<div class="layout"><section class="scene"><canvas id="world" role="img" aria-label="Boids 鸟群动画，点击选择一只鸟"></canvas><div id="metrics" class="metrics"></div><div class="buttons"><button id="play" class="primary">暂停</button><button id="step">单步 ＋1/60 s</button><button id="replay">从头重播</button></div><p id="status" role="status">演化中…</p><label class="check"><input id="neighbours" type="checkbox" checked>显示所选鸟的感知范围</label><p class="note">点击选择一只鸟（粉色），它只是观察对象，不会领导鸟群。上下、左右边缘相接；鸟从一边离开会从另一边回来。</p></section><aside><h2 style="font-size:20px;margin-top:0">对比四种规则组合</h2><div id="presets" class="presets"></div><div id="controls"></div><p class="note">改规则会暂停并保留当前鸟群；改鸟数会重建同一随机种子的初始状态。重播保留当前参数。每组预设只重置前三个权重，其余设置保留。</p><a href="#analysis">规则和公式 ↓</a></aside></div>
+<div class="layout"><section class="scene"><canvas id="world" role="img" aria-label="Boids 鸟群动画，点击选择一只鸟"></canvas><div id="metrics" class="metrics"></div><div class="buttons"><button id="play" class="primary">暂停</button><button id="step">单步 ＋1/60 s</button><button id="replay">从头重播</button></div><p id="status" role="status">演化中…</p><label class="check"><input id="neighbours" type="checkbox" checked>显示所选鸟的感知范围</label><p class="note">点击选择一只鸟（粉色），它只是观察对象，不会领导鸟群。上下、左右边缘相接；鸟从一边离开会从另一边回来。</p></section><aside><h2 style="font-size:20px;margin-top:0">对比四种规则组合</h2><div id="presets" class="presets"></div><div id="controls"></div><p class="note">改规则会暂停并保留当前鸟群；改鸟数会重建同一随机种子的初始状态。重播保留当前参数。每组预设只重置前三个权重，其余设置保留。</p><a href="#definitions">先看变量与单位 ↓</a><br><a href="#rule-vectors">分离、对齐、聚拢怎样算？ ↓</a><br><a href="#vector-example">跟着数字算完整一步 ↓</a><br><a href="#order-formula">朝向一致度怎样算？ ↓</a></aside></div>
 <section id="analysis" class="analysis"><span class="eyebrow">HOW IT WORKS</span><h2>局部互动，怎样变成整体秩序？</h2>
-<article class="chapter"><h3>01 · 三条规则</h3><ul><li><strong>分离：</strong>距离小于 26 个画布单位的邻居越近，越想避开；贡献方向正比于 −r/|r|²。</li><li><strong>对齐：</strong>让自己的朝向靠近感知范围内邻居的平均速度方向。</li><li><strong>聚拢：</strong>朝邻居相对位置的平均方向转向。跨边界时用周期空间的最短位移，避免错误地飞向画布中央。</li></ul><p>本页使用二维、全方向感知和固定飞行速度，是 Reynolds 思想的教学变体，不是鸟类行为的实验拟合。</p></article>
-<article class="chapter"><h3>02 · 具体怎样计算？</h3><div class="formula">aᵢ = limit(wₛ sᵢ + wₐ aᵢ<sup>align</sup> + w꜀ cᵢ, 220)<br>ṽᵢ = vᵢ + Δt aᵢ<br>vᵢ<sup>new</sup> = v<sub>speed</sub> ṽᵢ / |ṽᵢ|<br>xᵢ<sup>new</sup> = wrap(xᵢ + Δt vᵢ<sup>new</sup>)</div><p>每条规则先把期望方向变成“期望速度 − 当前速度”，并将其加速度限在 120 以内；再按滑条权重相加，并把总加速度限为 220。Δt 固定为 1/60 s。所有鸟根据同一旧状态同时更新，避免先算的鸟影响后算的鸟。</p><p>这是一个带邻域切换、限幅和速度归一化的离散多智能体模型。可以提出连续时间的转向模型，但本页展示的具体规则并非严格微分方程的精确解。</p></article>
-<article class="chapter"><h3>03 · 可以研究什么？</h3><p>“朝向一致度”是单位速度向量平均值的长度，范围 0～1。接近 1 表示大多数鸟朝向一致；接近 0 也可能是两群反向飞行，不等于完全无序。</p><ol><li>先选“一起飞”，观察局部小群是否逐渐协调。</li><li>选“只管避让”，保留碰撞回避，去掉对齐和聚拢，比较整体方向。</li><li>把对齐从 0 慢慢增加，再扩大感知半径，观察秩序是否更容易形成。</li><li>强聚拢可能让鸟过度集中；分离与聚拢之间的竞争决定群的尺度。</li></ol><p>速度较快、感知范围过小或离散步长太大时仍可能交叠；这不是严格的无碰撞控制器。没有真实空气动力、障碍物或训练过程。</p></article></section>
-<footer>原始思想与示例：<a href="https://red3d.com/cwr/boids/" target="_blank" rel="noopener">Craig Reynolds · Boids</a>本页独立实现；只在浏览器内运行，不保存业务资料。</footer></main><script src="lab-models.js"></script><script src="lab.js"></script></body></html>
+<article class="chapter" id="definitions"><h3>01 · 先定义：这只鸟的“状态”是什么？</h3>
+<p>这是一套<strong>二维、局部感知、恒速的行为规则</strong>。它把“避开近邻、跟随朝向、靠近同伴”写成可计算的关系，没有真实鸟的质量、升力或空气阻力。这里的转向加速度是设计出来的响应规则，不是已经测定的自然力。</p>
+<p>把第 n 步的第 i 只鸟写成位置向量 <b>xᵢⁿ</b> 和速度向量 <b>vᵢⁿ</b>；上标 n 是<strong>时间步编号，不是乘方</strong>，下标 i、j 是鸟的编号。粗体或带两个分量的量都是二维向量，|z| 表示向量长度。画布横向向右、纵向向下为正。</p>
+<div class="math-table" tabindex="0" aria-label="变量与参数表，可左右滚动"><table><caption>符号、含义与本页默认值</caption><thead><tr><th scope="col">符号</th><th scope="col">含义</th><th scope="col">单位／默认值</th></tr></thead><tbody>
+<tr><th scope="row">xᵢⁿ=(x,y)</th><td>位置，下面统一简写成 (x,y) 两个分量</td><td>画布单位；横向 0～1000，纵向 0～700（不含右端点）</td></tr>
+<tr><th scope="row">vᵢⁿ=(vₓ,vᵧ)</th><td>当前速度；既有方向，也有大小</td><td>画布单位／模型秒</td></tr>
+<tr><th scope="row">v₀</th><td>飞行速度滑条设定的速率，是一个标量</td><td>默认 75；可调 20～140</td></tr>
+<tr><th scope="row">Δt</th><td>每个计算小步的模型时间</td><td>固定 1/60 模型秒</td></tr>
+<tr><th scope="row">R；rₛ</th><td>感知半径；分离作用距离</td><td>R 默认 85，可调 30～160；rₛ 固定 26</td></tr>
+<tr><th scope="row">wₛ；wₐ；w꜀</th><td>分离、对齐、聚拢的权重，无量纲</td><td>“一起飞”预设为 1.5、1.2、0.7</td></tr>
+<tr><th scope="row">Aᵣ；Aₜ</th><td>每条转向建议、合成转向的长度上限</td><td>固定 120、220 画布单位／模型秒²</td></tr>
+<tr><th scope="row">sᵢⁿ；ℓᵢⁿ；cᵢⁿ</th><td>分离、对齐、聚拢给出的转向加速度建议；ℓ 是字母 ell</td><td>每一步重新计算的二维向量</td></tr>
+<tr><th scope="row">aᵢⁿ</th><td>三条建议合成后的总转向加速度</td><td>始终指总量，不再用 aᵢ 兼指对齐项</td></tr>
+</tbody></table></div>
+<p class="note">“一起飞”等预设只重设三个权重。若之前改过速率、感知半径或鸟数，这些设置会保留；表中列的是初次载入默认值。模型秒是本模拟的时间尺度，不表示已经与真实鸟的秒、米做过标定。</p>
+<p><strong>每只鸟的位置、速度作为状态传到下一步；三条建议与总加速度都在本步从零重算。</strong>建议不会作为独立的记忆量存下来，更不会把上一步的建议直接加进本步建议；它们的影响通过更新后的位置和速度传到未来。</p>
+</article>
+<article class="chapter" id="rule-vectors"><h3>02 · 第 0 步：用同一份旧状态找邻居</h3>
+<p>下面每个 n 都表示“本步开始时”。所有鸟先读取这份旧状态，各自算出下一步，最后<strong>一起更新</strong>，不会让先计算的鸟把新位置提前传给后计算的鸟。</p>
+<p><b>rᵢⱼⁿ</b> 是“从鸟 i 指向鸟 j”的最短周期位移，<b>dᵢⱼⁿ</b> 是它的长度。这两个符号分别表示向量与标量距离，不能混用。下式的坐标分量 xᵢ、yᵢ 等都取自第 n 步，为简洁省略时间上标。</p>
+<div class="formula">rᵢⱼⁿ = ( P<sub>1000</sub>(xⱼ−xᵢ), P<sub>700</sub>(yⱼ−yᵢ) )<br>dᵢⱼⁿ = |rᵢⱼⁿ|<br>P<sub>D</sub>(z) = z−D（z&gt;D/2）；z+D（z&lt;−D/2）；z（其余）</div>
+<p>例如 i 在 (995,100)，j 在 (5,100)，横向最短位移是 +10，不是 −990。P<sub>D</sub> 是“找近路”；最后更新位置用的 B 是“回到画布”，两者用途不同。</p>
+<div class="formula">Nᵢⁿ = { j≠i：ε &lt; dᵢⱼⁿ &lt; R }<br>Mᵢⁿ = { j∈Nᵢⁿ：dᵢⱼⁿ &lt; rₛ }，rₛ=26<br>mᵢⁿ = |Nᵢⁿ|，ε=10⁻⁹</div>
+<p>Nᵢⁿ 是所有可见邻居，Mᵢⁿ 是其中要避让的近邻；mᵢⁿ 是邻居数量。当前代码用严格小于，因此距离恰好等于 R 或 26 的点不纳入对应集合；自己和距离接近零的重合点会被跳过。</p>
+<h4>第 1 步 · 分离：近邻各贡献一个“远离它”的向量</h4>
+<div class="formula">qₛ,ᵢⁿ = Σ<sub>j∈Mᵢⁿ</sub> ( −rᵢⱼⁿ / (dᵢⱼⁿ)² )</div>
+<p>负号表示背离邻居。若一个邻居在右方 10 个单位，r=(10,0)，它的贡献是 (−0.1,0)；右方 20 个单位的贡献是 (−0.05,0)。虽然分母是距离平方，<strong>单个向量的大小是 d/d²=1/d</strong>，所以它不是大小按 1/d² 变化的库仑力。多个邻居的贡献先相加，也可能彼此抵消。</p>
+<h4>第 2 步 · 对齐：取邻居速度的向量平均</h4>
+<div class="formula">qₐ,ᵢⁿ = (1/mᵢⁿ) Σ<sub>j∈Nᵢⁿ</sub> vⱼⁿ　（mᵢⁿ&gt;0）</div>
+<p>这里平均的是速度向量，不是角度数字；两个相反速度会抵消。它只给出一个希望跟随的方向，还不是最终对齐加速度 ℓᵢⁿ。</p>
+<h4>第 3 步 · 聚拢：取邻居相对位移的向量平均</h4>
+<div class="formula">q꜀,ᵢⁿ = (1/mᵢⁿ) Σ<sub>j∈Nᵢⁿ</sub> rᵢⱼⁿ　（mᵢⁿ&gt;0）</div>
+<p>这是“邻居相对我在哪里”的平均，指向局部相对中心。跨边界时先取每条最短位移再平均；不能直接平均邻居的绝对坐标。</p>
+<p class="note">qₛ,ᵢⁿ、qₐ,ᵢⁿ、q꜀,ᵢⁿ 是三个原始方向输入，含义与单位不同，不能直接相加。没有对应邻居时，相关 q 定为零；下一步会把它们分别转换成同类的转向建议。</p>
+</article>
+<article class="chapter" id="steering-formula"><h3>03 · 第 4 步：方向 → 期望速度 → 转向建议</h3>
+<p>三条规则共用同一个函数 Tᵢⁿ(q)。对于非零方向 q，先沿 q 设定一个大小为 v₀ 的<strong>期望速度</strong>，再与当前速度相减。</p>
+<div class="formula">u(q) = v₀ · q/|q|<br>Tᵢⁿ(q) = limit( [u(q)−vᵢⁿ]/τ, Aᵣ )<br>τ=1 模型秒，Aᵣ=120<br>sᵢⁿ = Tᵢⁿ(qₛ,ᵢⁿ)<br>ℓᵢⁿ = Tᵢⁿ(qₐ,ᵢⁿ)<br>cᵢⁿ = Tᵢⁿ(q꜀,ᵢⁿ)</div>
+<p>τ 是把速度差换成转向加速度的响应时间尺度。本代码直接把速度差当作转向量使用，相当于这里取 τ=1；它没有独立的 τ 参数或滑条。这样写是为了让“速度差”和“加速度”的单位关系明确，计算数值与代码一致。</p>
+<div class="formula">limit(z,L) = z　　　　　　　（|z|≤L）<br>　　　　　 = L · z/|z|　　　（|z|&gt;L）</div>
+<p>限幅只缩短过长的向量，不改方向；不是分别把横纵分量截成 ±L。如果 |q|&lt;10⁻⁹，代码直接返回<strong>零建议</strong>，不做除法，也不把“无建议”解释成“期望速度为零，所以要刹车”。权重为零时也跳过对应规则。</p>
+<p><strong>距离更近先改变分离的合成方向；它不保证最终转向建议更大。</strong>例如只有同一个方向的一只近邻，从距离 20 变成 10，原始贡献会加倍，但归一化后的方向相同，算出的 sᵢⁿ 也相同。三条建议还受自身速度与 120 限幅影响。</p>
+</article>
+<article class="chapter" id="update-formula"><h3>04 · 第 5～6 步：加权、总限幅，再更新</h3>
+<p>权重无量纲，先放大或缩小各自的建议。三项合成后，再限制总长度；这两次限幅的顺序不能交换。</p>
+<div class="formula">aᵢⁿ = limit( wₛ sᵢⁿ + wₐ ℓᵢⁿ + w꜀ cᵢⁿ, Aₜ )<br>Aₜ=220<br>ṽᵢ = vᵢⁿ + Δt · aᵢⁿ<br>vᵢⁿ⁺¹ = v₀ · ṽᵢ/|ṽᵢ|<br>xᵢⁿ⁺¹ = B( xᵢⁿ + Δt · vᵢⁿ⁺¹ )</div>
+<p>ṽᵢ 是尚未恢复速率的临时速度。下一行将它恢复到设定的 v₀；最后用<strong>新速度</strong>移动位置。B 对横坐标按 1000、纵坐标按 700 取正的周期余数，例如 x=1002 回到 2，x=−2 回到 998。正常页面设置下临时速度非零，归一化可用。</p>
+<p>若没有任何邻居，则三条建议和 aᵢⁿ 都为零，方向保持；当滑条刚改过速率时，下一步仍会把速度大小恢复为新的 v₀。平时速率固定为 v₀，三条建议的最终作用体现为转向；不应把这种恒速处理读成守恒的牛顿力学。</p>
+<p class="note">这些式子说明的是本页实际离散更新算法。模型具有邻域切换、限幅、归一化和周期边界，不是某条连续微分方程的精确解。</p>
+</article>
+<article class="chapter" id="vector-example"><h3>05 · 完整算一次：一只鸟、两只邻居</h3>
+<p>用“一起飞”的权重 (1.5,1.2,0.7)，取 v₀=75、R=85、Δt=1/60。自己位于 (100,100)，速度 (75,0)；邻居甲位于 (110,100)，速度 (0,75)；邻居乙位于 (100,120)，速度 (75,0)。三只鸟的速率都是 75。这是固定算例，不是粉色鸟的实时读数。</p>
+<h4>① 找邻居并计算三个原始输入</h4>
+<p>两条位移为 rᵢ甲=(10,0)、rᵢ乙=(0,20)，距离为 10、20；它们都小于 26 和 85，所以两只邻居都参与三条规则。</p>
+<div class="formula">qₛ,ᵢ = (−10,0)/100 + (0,−20)/400<br>　　 = (−0.10,−0.05)<br>qₐ,ᵢ = [(0,75)+(75,0)]/2 = (37.5,37.5)<br>q꜀,ᵢ = [(10,0)+(0,20)]/2 = (5,10)</div>
+<h4>② 各自转换成转向建议</h4>
+<div class="math-table" tabindex="0" aria-label="数值计算表，可左右滚动"><table><caption>期望速度 → 减当前速度 → 单条限幅；数值保留两位小数</caption><thead><tr><th scope="col">规则</th><th scope="col">期望速度 u(q)</th><th scope="col">[u(q)−(75,0)]/τ</th><th scope="col">长度</th><th scope="col">限幅后的建议</th></tr></thead><tbody>
+<tr><th scope="row">分离 sᵢ</th><td>(−67.08,−33.54)</td><td>(−142.08,−33.54)</td><td>145.99 &gt; 120</td><td>(−116.79,−27.57)</td></tr>
+<tr><th scope="row">对齐 ℓᵢ</th><td>(53.03,53.03)</td><td>(−21.97,53.03)</td><td>57.40 &lt; 120</td><td>(−21.97,53.03)</td></tr>
+<tr><th scope="row">聚拢 cᵢ</th><td>(33.54,67.08)</td><td>(−41.46,67.08)</td><td>78.86 &lt; 120</td><td>(−41.46,67.08)</td></tr>
+</tbody></table></div>
+<p>只有分离项在这里触及单条 120 限幅。其余两项保留原值；“对齐或聚拢一定很小”不是通用结论。</p>
+<h4>③ 加权后再限总长度</h4>
+<div class="formula">1.5 sᵢ + 1.2 ℓᵢ + 0.7 cᵢ<br>≈ (−230.566,69.242)，长度 ≈ 240.739 &gt; 220<br>aᵢ = (220/240.739) · (−230.566,69.242)<br>　≈ (−210.704,63.277)</div>
+<h4>④ 更新速度与位置</h4>
+<div class="formula">ṽᵢ = (75,0) + (1/60) · (−210.704,63.277)<br>　≈ (71.488,1.055)，长度 ≈ 71.496<br>vᵢⁿ⁺¹ = 75 · ṽᵢ/|ṽᵢ| ≈ (74.992,1.106)<br>xᵢⁿ⁺¹ = (100,100) + (1/60) · vᵢⁿ⁺¹<br>　　　≈ (101.250,100.018)</div>
+<p>新速度长度仍是 75，方向稍微向右下偏转。这里未越过边界，B 不改变位置。下一步要从新的位置、速度<strong>重新找邻居并重算三条建议</strong>，不能直接沿用本次 q、s、ℓ、c 或 a。</p>
+<p class="note">计算过程使用未四舍五入的中间数值，表格仅作阅读展示。若边算边使用表内两位小数，末位可能略有差别。</p>
+</article>
+<article class="chapter" id="order-formula" style="scroll-margin-top:100px"><h3>06 · 动画下方的“朝向一致度”怎样算？</h3>
+<div class="formula">每只鸟的单位朝向 eᵢ = vᵢ / |vᵢ|<br>平均朝向 ē = (e₁ + … + e<sub>N</sub>) / N<br>朝向一致度 Φ = |ē|，范围 0～1</div>
+<p>全部向右，平均向量长度为 1；一半向右、一半向左会抵消，结果为 0；两只鸟一只向右、一只向下，结果为 √2/2≈0.707。它只衡量<strong>全体方向是否一致</strong>，不衡量挤得多紧，也不能直接说明是否碰撞或是否分成多个小群。</p>
+<p>时间是已推进的模拟时间，每个单步增加 1/60 s；鸟数是当前个体数。播放倍率只改变推进节奏，不是鸟的飞行速度，也不改变这三个转向向量的计算公式。</p>
+</article>
+<article class="chapter"><h3>07 · 逐条关闭规则，看看解释是否成立</h3><p>“朝向一致度”是单位速度向量平均值的长度，范围 0～1。接近 1 表示大多数鸟朝向一致；接近 0 也可能是两群反向飞行，不等于完全无序。</p><ol><li>先选“一起飞”，观察局部小群是否逐渐协调。</li><li>选“只管避让”，保留碰撞回避，去掉对齐和聚拢，比较整体方向。</li><li>把对齐从 0 慢慢增加，再扩大感知半径，观察秩序是否更容易形成。</li><li>强聚拢可能让鸟过度集中；分离与聚拢之间的竞争决定群的尺度。</li></ol><p>速度较快、感知范围过小或离散步长太大时仍可能交叠；这不是严格的无碰撞控制器。没有真实空气动力、障碍物或训练过程。</p></article>
+<p class="note">想把鸟群模型接到机器人工程？继续看 <a href="#engineering-links">状态递推、SLAM、人工势场与多机器人协作的联系及外部阅读 ↓</a>。</p>
+<details class="chapter" id="engineering-links"><summary><strong>辅助阅读 · 从 Boids 到机器人工程（点击展开）</strong></summary>
+<p>带着三个问题读下面的材料：<strong>状态是什么？谁提供观测？控制目标从哪里来？</strong>本页没有全局领队或指定队形，每只鸟的转向目标随邻居改变；工程系统则还可能有目的地、期望相对队形、传感误差和安全约束。</p>
+<div class="formula">完整状态 zᵢⁿ = (xᵢⁿ,vᵢⁿ)<br>局部控制：由自己与邻居的旧状态计算 aᵢⁿ<br>状态递推：zᵢⁿ⁺¹ = F(zᵢⁿ,aᵢⁿ)</div>
+<p>这里新增 z 表示位置与速度组成的<strong>完整状态</strong>，x 仍只表示位置；F 包含上文的恒速与周期边界操作。下面的对应关系是帮助迁移理解的类比，不能直接移用另一套算法的结论。</p>
+<ol class="engineering-reading">
+<li><h4>状态递推 → 轨迹优化与 MPC</h4><p>共同点是用状态和控制预测下一步。MPC 还会在预测时域内优化一串动作、执行第一步并重新规划；本页 Boids 直接使用三条局部规则，没有这一步优化。</p><p><a href="https://underactuated.mit.edu/trajopt.html" target="_blank" rel="noopener">MIT · Russ Tedrake · Trajectory Optimization ↗</a> <span class="note">在线教材；先读 Problem Formulation，再读 Model-Predictive Control。</span></p></li>
+<li><h4>已知状态的控制 → 有观测误差的估计与 SLAM</h4><p>本页直接读取模拟器里邻居的位置、速度。SLAM 要从运动与观测信息中联合估计自身位姿和地图，可用滤波或图优化。只给邻居观测加噪声、延迟会引出状态估计问题；还不能因此称为 SLAM，后者另有建图与联合估计任务。</p><p><a href="https://vnav.mit.edu/lectures.html" target="_blank" rel="noopener">MIT · Visual Navigation（VNAV）公开讲义目录 ↗</a> <span class="note">先看第 16–17 讲估计，再看第 23–24 讲 SLAM、因子图与边缘化。</span></p></li>
+<li><h4>分离与聚拢 → 人工势场路径规划</h4><p>“避开近处、靠向目标”的方向直觉可以对照人工势场阅读。本页聚拢的目标由邻居形成，没有固定终点或障碍物规划；加上对齐、归一化与限幅后，也不能把整套 Boids 直接当作某个势能的梯度下降。</p><p><a href="https://khatib.stanford.edu/teaching/cs225a/handouts/L8_Artificial_Potential_Field.pdf#page=6" target="_blank" rel="noopener">Stanford · Oussama Khatib · CS225A Artificial Potential Field ↗</a> <span class="note">PDF 讲义；从第 6 页的人工势场部分开始看吸引、排斥与运动规划。</span></p></li>
+<li><h4>局部对齐与聚拢 → 一致性、协作与编队控制</h4><p>共同的问题是“只用局部信息，怎样协调群体？”工程编队通常还指定相对位置或朝向，并处理感知、通信与动力学。本页 Φ 接近 1 只说明朝向一致，不代表已实现指定队形、证明一致性收敛或保证无碰撞；120/220 的行为限幅也不等于真实执行器模型。</p><p><a href="https://msl.stanford.edu/bibliography/montijano_vision-based_2016" target="_blank" rel="noopener">Stanford MSL · Vision-Based Distributed Formation Control Without an External Positioning System ↗</a> <span class="note">2016 年论文摘要与书目信息；把相对朝向、相对位置的一致性控制与视觉/IMU 估计接起来看。</span></p></li>
+</ol>
+<h4>继续向工程实现展开</h4>
+<ul><li><a href="https://publications.ri.cmu.edu/trajectory-design-and-control-for-aggressive-formation-flight-with-quadrotors" target="_blank" rel="noopener">CMU Robotics Institute 收录 · Trajectory Design and Control for Aggressive Formation Flight with Quadrotors ↗</a>：2012 年论文摘要；继续读实际编队如何考虑飞行器动力学、通信延迟与失效。这里是论文记录，不是完整课程。</li>
+<li><a href="https://pages.github.berkeley.edu/EECS-106/sp25-site/about/" target="_blank" rel="noopener">UC Berkeley · EECS C106B Spring 2025 课程介绍 ↗</a>：了解控制、运动规划、SLAM 和主动视觉在机器人学习路线中的位置；这是课程介绍入口，不把它当作某项算法的直接证明。</li></ul>
+<p class="note">本节连接点为原创教学整理；以上为学校课程、讲义或研究机构的公开来源，核对日期 2026-11-03。外部材料是延伸阅读，不表示本页已实现 MPC、SLAM、真实避障或机器人编队控制。</p>
+</details>
+</section>
+<footer>原始思想与延伸阅读：<a href="https://red3d.com/cwr/boids/" target="_blank" rel="noopener">Craig Reynolds · Boids</a>本页是独立教学实现；上述具体公式与参数按当前本地模型代码核对，不把它们说成 Reynolds 所有实现都采用的唯一公式。只在浏览器内运行，不保存业务资料。</footer></main><script src="model-notes.js"></script><script src="lab-models.js"></script><script src="lab.js"></script></body></html>
