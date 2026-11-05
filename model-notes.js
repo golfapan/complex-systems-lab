@@ -200,9 +200,9 @@ const notes={
     "define": "hᵢ 是格点 i 的沙粒数；达到 4 就倾倒。雪崩规模 S 是一次加沙后发生的总倾倒次数。",
     "build": "满格减四，四邻各加一；邻居满后继续传递。边缘沙粒流出，前一次雪崩结束后再加下一粒。",
     "formula": "hᵢ≥4 ⇒ hᵢ←hᵢ−4；每个域内四邻 hⱼ←hⱼ+1\n一次雪崩结束条件：所有 hᵢ<4。",
-    "params": "48×48 开放区域，每格初始 2 粒；每次随机选格加 1。阈值 4 对应四邻分配。",
-    "setup": "队列完成整次雪崩，主图显示松弛后的状态；一帧可以完成多次加沙与松弛。",
-    "observe": "比较连续几次雪崩的大小。所有格低于 4 表示本轮稳定；积累更多事件再研究规模分布。"
+    "params": "默认9×9教学模式：中心3×3各3粒，其余2粒，在中心加沙。另有48×48随机模式，初始每格2粒。均采用开放边界与阈值4。",
+    "setup": "每个可见阶段单独展示：加1粒、标出待倒格、本格减4并向四邻各送1粒。前一场完全结束才可加下一粒；可跳过本场慢动作。",
+    "observe": "粉框和箭头标记刚发生的倾倒，橙色表示达到阈值、等待倾倒，青框保留本场足迹。所有格低于4才稳定；教学起点的少量事件不用于判定临界分布。"
   },
   "ising": {
     "question": "邻居偏好一致，热扰动怎样打散这种秩序？",
@@ -269,6 +269,7 @@ const notes={
   }
 };
 function render(id,extra={}){
+ if(root.ModelMethod)return root.ModelMethod.render(id,extra);
  let host=document.getElementById('model-reading');
  if(['turing','life','continuous','ant','fluid','pendulum','fractal'].includes(id)){if(host)host.remove();return;}
  const n=notes[id];

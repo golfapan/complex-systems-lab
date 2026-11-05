@@ -19,6 +19,8 @@ Settings → Pages → Deploy from a branch → main → /(root)，保存。
 保持所有文件在同一层；不要只传 HTML，必须包含 CSS、JavaScript、
 fractal-worker.js 和 .nojekyll。链接均为相对路径，支持项目子路径。
 首页为 index.html，知识地图为 map.html，无需额外构建步骤。
+另含七步建模准则、常见建模关系，以及《一种新科学》12章导读。
+鸟群页详解规则与公式；沙堆演示可逐阶段观察倾倒。
 
 ## 教学范围
 
