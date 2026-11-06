@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><link rel="stylesheet" href="math-text.css"><script defer src="math-text.js"></script><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="从熟悉的力学、电路、传热和扩散出发，理解本构关系、线性近似、平方、乘积、守恒与微分方程的来源。"><title>建模原理 · 公式为什么这样写？ · 复杂系统实验室</title><link rel="stylesheet" href="modeling.css"><link rel="stylesheet" href="brand.css"><link rel="icon" type="image/jpeg" href="robot.jpeg"></head><body><main class="modeling" id="top"><nav class="lab-brand-nav" aria-label="页面导航"><a href="index.html">← 复杂系统实验室</a><a href="methodology.html">建模方法</a><a href="physics-relations.html#physics">物理关系速查</a><a href="physics-relations.html#formula-origins">公式从哪里来</a><a href="physics-relations.html#practice">组合成方程</a><a href="modeling.html">26 类通用关系</a><a class="lab-brand" href="index.html" aria-label="复杂系统实验室首页 · Stephen Pan 机器人标识" title="返回复杂系统实验室首页"><img src="robot.jpeg" alt="Stephen Pan 机器人标识" width="64" height="64"></a></nav><header><span class="eyebrow">WHY · MODELING PRINCIPLES</span><h1>建模原理 · 公式为什么这样写？</h1><p class="lead">从引力、弹簧、阻力、电路和传热等例子出发，追问公式为什么这样写：守恒规律、材料响应、几何与近似各起什么作用？</p><div class="reading-routes"><a href="physics-relations.html#physics"><b>查一个熟悉的关系 →</b><span>18 个物理例子：表达、符号与条件</span></a><a href="physics-relations.html#formula-origins"><b>弄懂公式为什么这样写 →</b><span>本构、近似、能量、几何与导数</span></a><a href="physics-relations.html#practice"><b>看几条关系怎样组成方程 →</b><span>质量—弹簧—阻尼器与 RC 电路</span></a></div></header><details class="chapter origin-topic physical-reference" id="physics"><summary><h2>常见物理关系速查</h2></summary><div class="origin-body"><div class="table-wrap physical-lookup" tabindex="0" aria-label="常见物理关系速查，可左右滚动"><table><thead><tr><th>物理关系</th><th>数学表达</th><th>典型例子</th></tr></thead><tbody><tr class="physics-group"><th colspan="3">力与运动</th></tr><tr><th scope="row">力与加速度</th><td><div class="physics-formula">ΣF=ma；Στ=Iα</div><small>固定质量；绕固定轴转动时I为该轴转动惯量。</small></td><td>2 kg物体受10 N合力，加速度为5 m/s²。</td></tr><tr><th scope="row">万有引力与近地重力</th><td><div class="physics-formula">|F|=Gm₁m₂/r²；近地面 |F|≈mg</div><small>r为质点间距；引力方向相互靠近。</small></td><td>间距减半，引力变为4倍；近地面1 kg物体的重力约9.81 N。</td></tr><tr><th scope="row">静电力（Coulomb）</th><td><div class="physics-formula">|F|=kₑ|q₁q₂|/r²</div><small>静止点电荷；同号排斥、异号吸引。</small></td><td>电荷量不变，间距加倍，力减为原来的1/4。</td></tr><tr><th scope="row">弹簧与扭簧（Hooke）</th><td><div class="physics-formula">F=−kx；τ=−κθ</div><small>x、θ从自然位置量起；k、κ为平动和扭转刚度。</small></td><td>k=100 N/m，拉长2 cm，恢复力为2 N。</td></tr><tr><th scope="row">单摆的重力力矩</th><td><div class="physics-formula">τg=−mgℓ sinθ；小角度 τg≈−mgℓθ</div><small>θ从竖直向下量起；小角近似用弧度。</small></td><td>小角度偏转加倍，恢复力矩约加倍。</td></tr><tr class="physics-group"><th colspan="3">阻力与摩擦</th></tr><tr><th scope="row">干摩擦</th><td><div class="physics-formula">滑动：Ff=−μk N sign(v)
+静止：|Ff|≤μs N</div><small>沿接触面一维运动；N为正压力。</small></td><td>N=100 N、μk=0.2，滑动摩擦力大小为20 N。</td></tr><tr><th scope="row">黏性阻尼与Stokes阻力</th><td><div class="physics-formula">F=−bv；低Re小球 b=6πηa</div><small>v为相对流体速度，η为动力黏度，a为球半径。</small></td><td>速度翻倍，阻力翻倍；用于减振器或黏性液体中的慢速小球。</td></tr><tr><th scope="row">空气平方阻力</th><td><div class="physics-formula">F=−½ρC_{D}A|v|v</div><small>v为相对空气速度；A为迎风面积。</small></td><td>形状与流态近似不变，车速翻倍，空气阻力约变为4倍。</td></tr><tr class="physics-group"><th colspan="3">流体</th></tr><tr><th scope="row">静水压</th><td><div class="physics-formula">p=p₀+ρgh</div><small>h为液面下深度，p₀为液面压力。</small></td><td>水深每增加1 m，压力约增加9.81 kPa。</td></tr><tr><th scope="row">浮力（Archimedes）</th><td><div class="physics-formula">Fb=ρ流体 g V排开</div><small>V排开为排开的流体体积，浮力向上。</small></td><td>物体排开1 L水，浮力约9.81 N。</td></tr><tr><th scope="row">圆管层流（Poiseuille）</th><td><div class="physics-formula">Q=πa⁴Δp/(8ηℓ)</div><small>不可压缩牛顿流体的稳态充分发展圆管层流；a为半径，ℓ为管长。</small></td><td>黏度、管长和压差不变，半径翻倍，流量变为16倍。</td></tr><tr class="physics-group"><th colspan="3">电路</th></tr><tr><th scope="row">电阻（Ohm）</th><td><div class="physics-formula">V=RI</div><small>R恒定的欧姆电阻；V为端电压，I为电流。</small></td><td>10 Ω电阻接5 V，电流为0.5 A。</td></tr><tr><th scope="row">电容：电荷储存</th><td><div class="physics-formula">q=CV；i=C dV/dt</div><small>C恒定；电流流入电压正端。</small></td><td>1 μF电容两端电压每秒增加2 V，电流为2 μA。</td></tr><tr><th scope="row">电感：电流变化</th><td><div class="physics-formula">V=L di/dt</div><small>L恒定；电流流入电压正端。</small></td><td>2 H电感电流每秒增加3 A，端电压为6 V。</td></tr><tr class="physics-group"><th colspan="3">传热与扩散</th></tr><tr><th scope="row">物体冷却（Newton）</th><td><div class="physics-formula">mc dT/dt=−hA(T−T环境)
+时间常数 τ=mc/(hA)</div><small>物体内部温度近似均匀；c为比热，h为换热系数。</small></td><td>其他条件不变，温差由40 K减至20 K，散热功率减半。</td></tr><tr><th scope="row">导热（Fourier）</th><td><div class="physics-formula">q″x=−k dT/dx
+平壁稳态：Q̇=kA(T热−T冷)/ℓ</div><small>q″为热流密度；k为导热系数，ℓ为壁厚。</small></td><td>两侧温差不变，壁厚翻倍，导热功率减半。</td></tr><tr><th scope="row">分子扩散（Fick）</th><td><div class="physics-formula">J=−D∇c</div><small>c为浓度，D为扩散系数，J为扩散通量。</small></td><td>D不变时，浓度梯度翻倍，扩散通量翻倍。</td></tr><tr class="physics-group"><th colspan="3">功与能量</th></tr><tr><th scope="row">机械功率</th><td><div class="physics-formula">P=F·v；转动 P=τω</div><small>点乘取沿运动方向的力；τ、ω取同一转轴方向。</small></td><td>沿运动方向施加10 N力，以2 m/s移动，功率为20 W。</td></tr></tbody></table></div><p class="physics-reading">教材出处（OpenStax）：<a href="https://openstax.org/books/physics/pages/18-2-coulombs-law">引力与静电力</a> · <a href="https://openstax.org/books/university-physics-volume-1/pages/14-7-viscosity-and-turbulence">流体黏性与圆管流动</a> · <a href="https://openstax.org/books/university-physics-volume-2/pages/9-4-ohms-law">电阻</a> · <a href="https://openstax.org/books/university-physics-volume-2/pages/8-1-capacitors-and-capacitance">电容</a> · <a href="https://openstax.org/books/university-physics-volume-2/pages/14-2-self-inductance-and-inductors">电感</a> · <a href="https://openstax.org/books/university-physics-volume-2/pages/1-6-mechanisms-of-heat-transfer">传热</a></p></div></details><section class="chapter relation-origins" id="formula-origins" aria-labelledby="origins-title">
+<h2 id="origins-title">为什么物理关系会写成线性、平方、乘积和导数？</h2>
+<p class="origin-lead">同一个符号形式，背后可能有不同机制。先分清守恒／平衡、材料响应和几何，再看怎样组合成方程；下面七个问题可以逐个展开。</p>
+<div class="origin-overview"><article><b>守恒与平衡</b><p>规定收支怎样核算，或合力怎样改变动量。</p><span>例：能量变化率＝输入功率−输出功率</span></article><article><b>本构与元件关系</b><p>补上材料或元件受到作用后的响应。</p><span>例：应力＝杨氏模量×应变</span></article><article><b>几何与运动学</b><p>把长度、面积、变形和速度连接起来。</p><span>例：应变＝伸长量／原长，速度＝位置变化率</span></article></div>
+<details class="origin-topic" id="origin-linear" open><summary>01 · 什么是本构关系？为什么小变化常常接近线性？</summary><div class="origin-body">
+<p><strong>本构关系（constitutive relation）描述具体材料怎样响应外界作用。</strong>同样的温度梯度，铜和木头的热流不同；同样的应变，钢和软材料产生的应力不同。守恒规律仍然成立，响应函数和参数则因材料及条件而异。</p>
+<p>以一根均匀直杆的小变形单轴拉伸为例：σ=Eε。其中应力 σ=F/A 是单位面积承受的力；应变 ε=ΔL/L 是相对伸长；E 是杨氏模量。代入后得到：</p>
+<div class="formula">材料：σ=Eε；几何：σ=F/A，ε=ΔL/L
+⇒ F=(EA/L)ΔL ⇒ 等效刚度 k=EA/L</div>
+<p>因此，F=kΔL 是整根杆的元件关系；k 同时包含材料 E 和几何 A、L。材料相同，杆加粗会更难拉长，杆加长则更容易拉长。</p>
+<h4>一条弯曲的响应曲线，在小范围内可以用切线代替</h4>
+<p>若响应 y=f(x) 在工作点 x₀ 附近足够光滑，写 Δx=x−x₀，就有局部近似：</p>
+<div class="formula">Δy=f′(x₀)Δx+½f″(x₀)(Δx)²+更高阶项
+一阶项非零，且高阶项相对很小时：Δy≈KΔx，K=f′(x₀)</div>
+<p>线性系数就是当前工作点的斜率。这里通常是<strong>变化量之间成正比</strong>，原始量不必都从零开始；如果一阶导数为零，领先的变化可能是平方或更高次项。</p>
+<p><b>看一个自设例子：</b>恢复力 F=−kx[1+(x/L)²]。L 为非线性开始明显的长度尺度；立方修正相对线性项的大小是 (x/L)²。x/L=0.1 时修正为 1%，x/L=0.5 时为 25%。适用范围由忽略项的相对大小决定。</p>
+<p class="origin-condition">本构不一定线性。大变形可以仍然是可恢复的非线性弹性；塑性和黏弹性还可能需要描述加载历史。仅由“弹簧”二字也不能断定 F(−x)=−F(x)：只有响应确有反向对称性时，偶次项才会消失。</p>
+<p class="origin-reading">继续读：<a href="https://ocw.mit.edu/courses/16-225-computational-mechanics-of-materials-fall-2003/pages/lecture-notes/">MIT · 弹性、本构与有限变形模型</a> · <a href="https://www.damtp.cam.ac.uk/user/examples/D23Le.pdf#page=15">剑桥 · 牛顿流体的本构假设</a> · 对照 <a href="modeling.html#p-spring">线性恢复</a>。</p>
+</div></details>
+<details class="origin-topic" id="origin-square"><summary>02 · 为什么能量经常含平方？平方阻力又是同一个原因吗？</summary><div class="origin-body">
+<h4>弹性势能的平方，来自把逐渐增加的力累加起来</h4>
+<p>缓慢拉伸理想线性弹簧时，所需外力从 0 增加到 kx；力—位移图下的面积就是做功。它是一个三角形，所以：</p>
+<div class="formula">U(x)−U(0)=∫₀ˣ kξ dξ=½kx²
+恢复力 F=−dU/dx=−kx</div>
+<p>同一个系统，力对位移是线性的，势能却是平方。动能也可从功推出：固定质量、经典低速运动中，F=m dv/dt，而 dx=v dt，因此 dW=F dx=mv dv，积分得到 K=½mv²。两个 ½ 都来自积分，不是任意配上的系数。</p>
+<p class="origin-reading" id="origin-notation">这里用到的 dv/dt、v̇、微分与变换记法，统一见基础微积分的 导数与微分方程的不同写法 →。</p>
+<h4>平方阻力的两个速度因子，来自流体动量的搬运</h4>
+<div class="formula">每秒遇到的流体质量约为 ρAv
+每单位质量的速度改变量量级约为 v
+⇒ 每秒动量改变量量级约为 ρAv²
+常见阻力大小：F_{D}=½ρC_{D}Av²</div>
+<p>这是尺度解释，不能独自确定 C_{D}。C_{D} 还取决于形状、Reynolds number 等条件；在它近似恒定的范围，才有 F_{D}∝v²。低 Re 时黏性占主导，整体阻力常近似与 v 成正比。</p>
+<p class="origin-condition">牛顿流体的局部黏性本构可以仍然是线性的，而物体受到的整体阻力呈平方规律；后者还包含整个流场和惯性的影响。不能把所有平方都归因于能量守恒。</p>
+<p class="origin-reading">继续读：<a href="https://openstax.org/books/university-physics-volume-1/pages/7-1-work">功与力—位移积分</a> · <a href="https://openstax.org/books/university-physics-volume-1/pages/7-2-kinetic-energy">动能</a> · <a href="https://openstax.org/books/university-physics-volume-1/pages/6-4-drag-force-and-terminal-speed">阻力与适用条件</a> · <a href="modeling.html#compare">用现有曲线比较线性与平方阻力 →</a></p>
+</div></details>
+
+
+<details class="origin-topic" id="origin-geometry"><summary>03 · 为什么是 1/r²？圆管流量为什么又有半径的四次方？</summary><div class="origin-body">
+<h4>先区分：换坐标系，还是换了源的空间分布？</h4>
+<p><strong>把位于原点的同一个点电荷改用柱坐标描述，物理电场不会改变。</strong>它到电荷的实际距离记作 R，场强仍随 1/R² 变化。柱坐标中 R=√(r²+z²)，此时 r 只是到轴的距离，不能把两者混为一谈。</p>
+<p>产生不同距离规律的关键，是源的分布、对称性及边界条件变了。球坐标、柱坐标只是分别适合这些几何的表达工具。下面用真空静电场比较：电荷取正，E 表示场强大小，ε₀ 为真空介电常数。</p>
+<div class="table-wrap" tabindex="0" aria-label="球、柱、平面对称下的场强规律"><table><thead><tr><th>源与对称性</th><th>Gauss 定律怎样计算通量？</th><th>场强怎样随距离变化？</th></tr></thead><tbody>
+<tr><th scope="row">孤立点电荷 q<br>球对称</th><td>半径 r 的球面：<br>E·4πr²=q/ε₀</td><td>E=q/(4πε₀r²)<br>距离翻倍，场强变为 1/4。</td></tr>
+<tr><th scope="row">无限长均匀线电荷<br>柱对称，线密度 λ</th><td>半径 r、长度 ℓ 的圆柱侧面：<br>E·2πrℓ=λℓ/ε₀<br>场沿径向，两个端面无通量。</td><td>E=λ/(2πε₀r)<br>r 是到线的垂直距离；距离翻倍，场强变为 1/2。</td></tr>
+<tr><th scope="row">无限大均匀带电薄平面<br>平面对称，面密度 σ</th><td>跨过平面的薄柱，两端各有面积 A：<br>2EA=σA/ε₀<br>场垂直平面，侧面无通量。</td><td>两侧 E=σ/(2ε₀)<br>各侧的大小与离平面的距离无关，方向分别向外。</td></tr>
+</tbody></table></div>
+<p>球面的面积随 r² 扩大，固定长度圆柱的侧面积随 r 扩大，而平面例子中两端面积不随距离扩大。<strong>同一条通量定律，配合不同的源分布和对称性，给出不同的距离规律。</strong>不能只凭“越远越弱”就断定是逆平方。</p>
+<p class="origin-condition">这些结论有范围。球对称电荷分布的外部场由总电荷决定；内部要用半径 r 包围的电荷，例如均匀带电实心球内部 E∝r。无限长线源、无限大平面是理想化；有限源存在端部或边缘效应。总电荷非零的有限源，在足够远处又可近似为点源。也不是任何圆柱形物体都具有柱对称电场。</p>
+<h4>这怎样接到梯度、散度、旋度？</h4>
+<p>这三个常用算子是<strong>梯度、散度与旋度</strong>。其中散度把“局部有没有源”与“封闭边界流出多少”接起来的量：</p>
+<ul><li><strong>梯度 ∇φ：</strong>标量场 φ 在各方向怎样变化。静电势 φ 给出电场 E=−∇φ，负号表示电场指向电势下降的方向。</li><li><strong>散度 ∇·E：</strong>单位微小体积的净向外通量，描述局部源汇。静电场满足 ∇·E=ρₑ/ε₀，ρₑ 是体电荷密度。</li><li><strong>旋度 ∇×E：</strong>描述局部环流。静电场在光滑区域满足 ∇×E=0；Stokes 定理把它与边界环流连接。它和描述净流出的散度不是同一件事。</li></ul>
+<div class="formula">Gauss 散度定理：∯∂Ω E·n dS=∭Ω (∇·E)dV
+配合静电源方程：∯∂Ω E·n dS=Q包围/ε₀
+其中 n 是封闭边界的外法向。</div>
+<p>前者是数学定理，后者还用了电场的物理规律。点电荷处有奇点，不能把源外的 ∇·E=0 直接套到穿过奇点的整个区域；包围点源的曲面仍有非零通量。</p>
+<h4>同一个局部方程，为什么会出现不同的径向导数形式？</h4>
+<p>在无电荷区域，∇·E=0。若场分别具有球、柱或平面对称性，散度就简化为：</p>
+<div class="formula">球对称径向场：(1/r²)d(r²Eᵣ)/dr=0 ⇒ Eᵣ=C/r²
+柱对称径向场：(1/r)d(rEᵣ)/dr=0 ⇒ Eᵣ=C/r
+平面对称场：dE_z/dz=0 ⇒ 每一侧 E_z 为常数</div>
+<p>三行中的 C 各是该模型的常数，由源强和边界条件确定。r²、r 这些因子记录了几何扩张；不是坐标名称额外制造了新的物理定律。</p>
+<p>再代入 E=−∇φ，就得到关于未知电势场的偏微分方程：</p>
+<div class="formula">∇²φ=∇·(∇φ)=−ρₑ/ε₀　（Poisson 方程）
+无电荷区域：∇²φ=0　（Laplace 方程）</div>
+<p>这就从“场怎样随距离变化”接到了 PDE：先有局部方程，再结合区域、源分布与边界条件求场。∇² 是空间拉普拉斯算子，与前面把时间函数变到 s 域的拉普拉斯变换是不同的数学工具。</p>
+<p class="origin-reading"><b>接到现有数学内容：</b>07 · 偏导与梯度 → 11 · 散度、旋度与 Green／Gauss／Stokes → A3 · 线性 PDE、Laplace／Poisson 与边界条件。坐标与面积因子另看 09 · 多重积分与坐标变换。这条向量微积分主线对应 <a href="https://ocw.mit.edu/courses/18-02-multivariable-calculus-fall-2007/pages/lecture-notes/">MIT 18.02</a>；18.03 的主线是常微分方程。</p>
+<h4>四次方可以由两个平方因素相乘出现</h4>
+<p>对半径 a、长度 ℓ 的刚性圆管，在固定压差 Δp、黏度 μ 下，Poiseuille 流的平均速度与 a² 成正比，截面积也与 a² 成正比：</p>
+<div class="formula">平均速度 v̄=Δp·a²/(8μℓ)，面积 A=πa²
+体积流量 Q=A v̄=πa⁴Δp/(8μℓ)</div>
+<p>半径变为 2 倍，截面积扩大 4 倍，平均速度也增为 4 倍，流量于是变为 16 倍。这里保持压差不变；若保持流量不变，改变的是所需压差。</p>
+<p class="origin-condition">圆管公式要求稳态、充分发展、不可压缩牛顿流体的层流，以及管壁无滑移等条件。只凭“管子更粗”无法确定四次方。</p>
+<p class="origin-reading">继续读：<a href="https://openstax.org/books/university-physics-volume-2/pages/6-3-applying-gausss-law">Gauss 定律与不同对称性</a> · <a href="https://openstax.org/books/university-physics-volume-1/pages/14-7-viscosity-and-turbulence">黏性与 Poiseuille 流</a> · 对照 <a href="modeling.html#p-power">反幂律</a>。</p>
+</div></details>
+<details class="origin-topic" id="origin-product"><summary>04 · 为什么会把两个量相乘？先找“每份多少 × 有多少份”</summary><div class="origin-body">
+<p><b>乘积常来自两个不同角色。</b>例如浓度 c 的单位为质量／体积，流体速度 u 的单位为长度／时间。在时间 Δt 内，穿过面积 A 的体积为 AuΔt；其中的物质量就是 cAuΔt：</p>
+<div class="formula">通过的物质量=浓度 × 通过的体积=cAuΔt
+⇒ 输运率=cAu；单位面积的平流通量 J=c u</div>
+<p>这里一个因子给出“每单位体积装多少”，另一个给出“每秒搬多少体积”。若浓度和流速各增为 2 倍，输运率变为 4 倍。</p>
+<p>库仑力里的 q₁q₂ 则有另一条链：点电荷 q₁ 产生的电场与 q₁ 成正比，电荷 q₂ 受到的力为 F=q₂E，于是出现 q₁q₂。<strong>需要两方参与，本身并不足以推出乘积；还需要各自怎样贡献的规律。</strong></p>
+<p class="origin-condition">做量纲检查：c u 的单位是质量／(面积·时间)，确实是通量。单位相符可以排错，但不能证明模型一定正确，也不能独自给出所有系数。</p>
+<p class="origin-reading">对照 <a href="modeling.html#p-advect">平流与输运</a> · <a href="physics-relations.html#coulomb">库仑力的向量式</a>。浓度相乘的反应速率还需要相应的微观反应机制，不能套给所有化学反应。</p>
+</div></details>
+<details class="origin-topic" id="origin-balance"><summary>05 · 守恒怎样变成导数？为什么扩散方程会有空间二阶导数？</summary><div class="origin-body">
+<p><b>导数先来自“单位时间内的收支”。</b>对一个固定的小区域，已有的量加上流入、减去流出、再加内部源汇，就是下一刻的量；除以时间间隔并取极限：</p>
+<div class="formula">积累率=流入率−流出率+内部源汇
+∂c/∂t=−∇·J+s</div>
+<p>c 是单位体积所含的量；J 是通量；s 是单位体积、单位时间的源汇。∇·J 是“净向外流出”的局部强度，所以前面有负号。守恒关系还没有告诉我们通量有多大，需要补充本构。</p>
+<div class="origin-flow"><div><b>① 能量收支</b><span>ρcₚ ∂T/∂t=−∂q/∂x</span></div><div><b>② 导热本构</b><span>q=−k ∂T/∂x</span></div><div><b>③ 组合成热方程</b><span>ρcₚ ∂T/∂t=k ∂²T/∂x²</span></div></div>
+<p>此处为一维静止介质，无内部热源，ρ、比热 cₚ 和 k 取常数。第一个空间导数表示温度差怎样驱动热流，第二个表示相邻位置的热流差怎样造成积累。若 k 随位置或温度变化，应保留 ∂ₓ(k∂ₓT)。</p>
+<h4>有阻尼时，守恒的能量去了哪里？</h4>
+<div class="formula">mẍ+bẋ+kx=f(t)，机械能 E=½mẋ²+½kx²
+dE/dt=ẋ(mẍ+kx)=f(t)ẋ−bẋ²</div>
+<p>外力输入功率 f(t)ẋ，阻尼把机械能以 bẋ² 的速率转成热等内部能量。无外力时机械能下降；若把相关热量及环境一起计入，总能量仍按完整系统的收支核算。这个恒等式也能检查程序的符号和能量变化。</p>
+<p class="origin-reading">继续读：<a href="https://academicweb.nd.edu/~powers/ame.30332/notes.pdf">Notre Dame · 能量守恒与导热本构（第 2.3–2.4 节）</a> · 对照 <a href="modeling.html#p-balance">守恒收支</a>、<a href="modeling.html#p-diffuse">扩散</a>和<a href="modeling.html#p-linear-drag">阻尼</a>。</p>
+</div></details>
+<details class="origin-topic" id="origin-time"><summary>06 · 一阶变化率为什么产生指数？二阶运动又怎样改写成状态方程？</summary><div class="origin-body">
+<p>“每秒减少固定数量”会得到直线；“每秒减少现存数量的固定比例”才会得到指数。二者的机制不同：</p>
+<div class="formula">固定速率：dN/dt=−a ⇒ N=N₀−at（N尚未耗尽时）
+固定比例速率：dN/dt=−λN ⇒ N=N₀e^(−λt)，λ&gt;0
+经过时间 1/λ，剩下约 36.8%；再过同样时间，剩余量再乘同一比例。</div>
+<p>因此，松弛、放电、冷却偏差等会共享指数形式，前提是相应比例系数近似恒定。指数描述的是方程的解，原来的局部变化率关系可以仍是线性的。可对照 <a href="physics-relations.html#practice">RC 电路拼接例</a>。</p>
+<p>力学里的二阶导数来自“力改变速度，速度改变位置”。把 x 和 v 都列为状态，就可以写成两个一阶方程：</p>
+<div class="formula">mẍ+bẋ+kx=f(t)
+⇒ ẋ=v；v̇=[f(t)−bv−kx]/m</div>
+<p class="origin-condition">这说明常见有限维运动方程的一种组织方式；因果性本身并不能保证所有系统都能用有限个状态写成一阶 ODE。含记忆的模型可能需要额外内部状态或历史，空间场则还要处理空间分布。</p>
+<p class="origin-reading">对照 <a href="modeling.html#p-decay">指数衰减</a> · <a href="modeling.html#p-target-speed">松弛</a> · <a href="methodology.html#branches">连续、离散与空间场</a>。</p>
+</div></details>
+<details class="origin-topic" id="origin-limits"><summary>07 · 为什么这些简单形式反复出现？怎样判断是在推导，还是在作假设？</summary><div class="origin-body">
+<p>宏观模型把大量微观细节压缩成少数变量和系数；小变化允许局部近似，对称性排除部分项，守恒约束收支，几何决定面积与长度怎样随尺度变化。这几条机制常常一起作用，留下比较简单的表达。</p>
+<p><b>但同一种现象描述不唯一决定公式。</b>“越近作用越强”可以对应 1/r、1/r² 或指数衰减。需要进一步的机制、测量或适用尺度才能选择；量纲正确和曲线好看都不足以替代这些依据。</p>
+<p>实验室里 Boids 的邻居权重、Life 的阈值、Logistic 映射的迭代式，是特定模型给出的规则或假设。它们适合研究局部作用怎样产生整体行为，但不都来自能量守恒。简单方程在耦合、反馈与反复迭代中，也可能产生复杂行为；复杂行为并非必然出现。</p>
+<p class="origin-question"><b>看下一条关系时问：</b>这里的每个乘号、幂次、负号和导数，各自对应哪一个物理步骤？哪些部分来自定律，哪些来自近似，哪些需要实验来确定？</p>
+<p class="origin-reading"><a href="modeling.html#patterns">继续看 26 类关系 →</a> · <a href="modeling.html#model-table">对照 26 个实验模型 →</a></p>
+</div></details>
+</section><section class="chapter" id="coulomb"><h2>同样的逆平方：引力与库仑力</h2><p>两者的大小都随1/r²变化。方向由符号和方向向量给出：引力总是吸引，静电力则由电荷同异号决定。</p><div class="formula">r=|xᵢ−xⱼ|，êᵢⱼ=(xᵢ−xⱼ)/r（从j指向i）
+引力：Fᵢⱼ=−Gmᵢmⱼ êᵢⱼ/r²
+静电力：Fᵢⱼ=kₑqᵢqⱼ êᵢⱼ/r²</div><p>距离减半，两种力的大小都变为4倍。也可以把静电力写成kₑqᵢqⱼ(xᵢ−xⱼ)/r³：分子向量的长度是r，所以力的大小仍按1/r²变化。</p></section>
+<section class="chapter" id="practice"><h2>把几条关系接起来，就得到系统模型</h2><div class="relationship-combinations"><article><h3>力学：质量—弹簧—阻尼器</h3><p>取水平位移x，弹簧自然位置为零点，外力为f(t)。</p><div class="formula">弹簧：Fₛ=−kx
+阻尼：Fᵦ=−bẋ
+合力：mẍ=f(t)−bẋ−kx
+⇒ mẍ+bẋ+kx=f(t)</div><p>三条熟悉的关系拼成二阶模型。k决定恢复作用，b决定阻尼，m决定惯性。</p></article><article><h3>电路：电阻＋电容</h3><p>电压u(t)经电阻R给电容C充电，电容电压为v。</p><div class="formula">电阻：i=(u−v)/R
+电容：i=C dv/dt
+⇒ RC dv/dt+v=u(t)
+时间常数 τ=RC</div><p>两条元件关系拼成一阶模型。R或C翻倍，充放电的时间尺度就翻倍。</p></article></div></section>
+<section class="chapter" id="fem-piml"><h2>未知的响应关系，怎样用数据补上？</h2><p>在选定尺度与假设下，守恒、运动学和响应关系共同组成模型；其中不清楚的响应形式或参数，可以借助实验数据辨识。例如质量—弹簧—阻尼器中，阻尼力是否近似与速度成正比，就可以用观测检验。</p><p>怎样进一步学习本构、接入有限元，或用PINN求解与反演，见 Physics-informed ML：从阻尼辨识到本构与求解 →。</p></section><footer>复杂系统实验室 · 建模原理 · <a href="physics-relations.html#top">回到开头</a> · <a href="index.html">返回实验室</a></footer></main><script>function revealOrigin(){const id=decodeURIComponent(location.hash.slice(1)),moved={"fem-material": "/fun-study/piml-training.html#fem-material", "rod-example": "/fun-study/piml-training.html#rod-example", "learn-constitutive": "/fun-study/piml-training.html#learn-constitutive", "reading": "/fun-study/piml-progress.html#sources", "sources": "/fun-study/piml-progress.html#sources", "paper-classic": "/fun-study/piml-progress.html#ref-coleman", "paper-data": "/fun-study/piml-progress.html#ref-data-driven", "paper-cann": "/fun-study/piml-progress.html#ref-cann", "paper-pinn": "/fun-study/piml-progress.html#ref-pinn", "paper-piml": "/fun-study/piml-progress.html#ref-karniadakis21", "paper-spd": "/fun-study/piml-progress.html#ref-spdnn"};if(moved[id]){location.replace(moved[id]);return;}const node=document.getElementById(id);if(!node)return;const panel=node.closest('details');if(panel)panel.open=true;requestAnimationFrame(()=>node.scrollIntoView({block:'start'}));}addEventListener('hashchange',revealOrigin);if(location.hash)revealOrigin();</script></body></html>

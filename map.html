@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><link rel="stylesheet" href="math-text.css"><script defer src="math-text.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>知识地图 · 复杂系统实验室</title>
 <style>
@@ -116,7 +116,7 @@ footer{margin-top:60px;font-size:14px;color:var(--muted)}
 <main>
 <nav aria-label="返回导航" class="lab-brand-nav">
 <a href="index.html">← 复杂系统实验室</a><a id="extensions" href="index.html#extensions">拓展实验 → 首页</a>
-<a href="methodology.html">建模准则：七步方法与常见关系 ↗</a><a class="lab-brand" href="index.html" aria-label="复杂系统实验室首页 · Stephen Pan 机器人标识" title="返回复杂系统实验室首页"><img src="robot.jpeg" alt="Stephen Pan 机器人标识" width="64" height="64"></a></nav>
+<a href="physics-relations.html">建模原理 ↗</a><a href="modeling.html">通用建模关系 ↗</a><a href="methodology.html">建模方法：七步方法 ↗</a><a class="lab-brand" href="index.html" aria-label="复杂系统实验室首页 · Stephen Pan 机器人标识" title="返回复杂系统实验室首页"><img src="robot.jpeg" alt="Stephen Pan 机器人标识" width="64" height="64"></a></nav>
 
 <header>
 <div class="eyebrow">KNOWLEDGE MAP · 26 MODELS</div>
@@ -125,7 +125,7 @@ footer{margin-top:60px;font-size:14px;color:var(--muted)}
 </header>
 <noscript><p class="box">知识图、表格和知识卡需要启用 JavaScript。可先返回首页阅读各实验页的模型说明。</p></noscript>
 
-<nav class="jump" aria-label="本页目录"><a href="#relations">关系图</a><a href="#comparison">数学定位表</a><a href="#knowledge">查知识点</a><a href="#learning">学习路线</a><a href="#gaps">覆盖与下一步</a><a href="#reading">阅读来源</a></nav>
+<nav class="jump" aria-label="本页目录"><a href="map.html#relations">关系图</a><a href="map.html#comparison">数学定位表</a><a href="map.html#knowledge">查知识点</a><a href="map.html#learning">学习路线</a><a href="map.html#gaps">覆盖与下一步</a><a href="map.html#reading">阅读来源</a></nav>
 <details class="box reading" open><summary>第一次来，怎样用这张地图？</summary><p class="small">先选一个问题，再改一个参数，最后比较两个相关模型。建议每次留下三句话：我改变了什么、看到了什么、它支持什么解释。</p><ul class="small"><li><b>先看直观现象：</b><a href="life.html">Life</a> → <a href="boids.html">Boids</a> → <a href="extensions.html#kuramoto">同步</a>，再返回地图看联系。</li><li><b>从工程数学出发：</b>按下方八阶段路线，从倒立摆、稳定性和反馈开始。</li><li><b>读结论时分三层：</b>“本页求解方式”说明实际代码；“核心知识点”包含理论背景及适用条件；“延伸与应用”是阅读方向，不代表本页已经验证。</li></ul></details>
 
 <h2>四条贯穿全部模型的主线</h2>
@@ -147,7 +147,7 @@ footer{margin-top:60px;font-size:14px;color:var(--muted)}
 <p class="small">窄屏可左右滑动关系图。键盘可选中模型或连线后按 Enter；图下的表和知识卡也提供完整入口。</p>
 <div class="chips" id="chips" role="group" aria-label="主题"></div>
 <div class="mapwrap" style="margin-top:14px">
-<div class="svgscroll"><svg id="map" viewBox="0 0 1200 840" role="group" aria-label="26 个模型之间关系的知识图"></svg></div>
+<div class="svgscroll"><svg id="map" viewbox="0 0 1200 840" role="group" aria-label="26 个模型之间关系的知识图"></svg></div>
 <aside id="panel" class="box" aria-live="polite"></aside>
 </div>
 
@@ -453,7 +453,7 @@ const CARD={
   core:['一次加一粒；某格达到 4 就倾倒，可能引起连锁雪崩。','自组织临界：在慢驱动、开放耗散等规则下，系统在大系统极限出现无特征尺度的雪崩统计。有限网格有截断；BTW 多重标度使单一幂律指数的描述需要谨慎。','Abelian 性质（Dhar 1990）：多个不稳定格的倾倒顺序不影响最终结果，这一点与必须同步更新的生命游戏不同。','"慢输入、快释放、局部阈值"是许多突然爆发现象的共同结构。有限样本的直方图不能证明幂律。'],
   ea:['地震 Gutenberg–Richter 定律的类比','森林火灾模型','神经元雪崩','电网连锁故障']},
  ising:{eq:'H = −J Σ⟨ij⟩ sᵢsⱼ　　ΔE = 2sᵢ Σ 邻居 sⱼ　　P(接受) = min(1, e<sup>−ΔE/T</sup>)',
-  core:['能量偏好相邻自旋一致，温度带来涨落。Metropolis：能量下降必接受，上升按 e<sup>−ΔE/T</sup> 接受，长期采样服从 Boltzmann 分布。','无限二维方格、零外场、J=kB=1 时 T꜀ = 2 / ln(1 + √2) ≈ 2.269（Onsager）。本页有限网格只呈现平滑过渡与涨落；低温需足够平衡时间。','临界点附近关联长度发散，磁畴是各种尺度的分形团簇，弛豫变慢（临界慢化）。','动画是 Markov 链的采样过程，不是真实的物理时间演化。'],
+  core:['能量偏好相邻自旋一致，温度带来涨落。Metropolis：能量下降必接受，上升按 e<sup>−ΔE/T</sup> 接受，长期采样服从 Boltzmann 分布。','无限二维方格、零外场、J=k_B=1 时 T꜀ = 2 / ln(1 + √2) ≈ 2.269（Onsager）。本页有限网格只呈现平滑过渡与涨落；低温需足够平衡时间。','临界点附近关联长度发散，磁畴是各种尺度的分形团簇，弛豫变慢（临界慢化）。','动画是 Markov 链的采样过程，不是真实的物理时间演化。'],
   ea:['铁磁相变；格气模型、二元合金','Hopfield 网络与 Boltzmann 机（能量函数相同）','图像去噪；模拟退火','量子退火中的 Ising 形式组合优化']},
  cylinder:{eq:'fᵢ(x + eᵢΔt, t + Δt) = fᵢ − (fᵢ − fᵢᵉᑫ)/τ　　ν = (τ − ½)/3　　Re = UD/ν',
   core:['LBM 不直接解 NS 方程，而是在格点上演化 9 个方向的粒子分布：碰撞（BGK 弛豫到平衡分布）+ 迁移。宏观上恢复弱可压 NS 方程。','雷诺数、阻塞比与边界共同决定尾流。理想无界二维圆柱约 Re=47 开始周期脱落；St=fD/U 随 Re 和条件变化，不能把 0.2 当作本页已验证常数。','涡脱落是自激振荡（极限环），不需要周期外力。','边界决定现象：入口、出口、固壁、障碍物的处理方式都会影响结果。本页以入口峰值速度定义 Re≈89，换用抛物线平均速度约为 60。已检查交替尾流，但未测定临界 Re 或做 Strouhal、阻力和网格收敛基准。'],

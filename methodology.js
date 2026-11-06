@@ -1,3 +1,6 @@
+
+/* Previously embedded physical chapters now have a dedicated page. */
+(function(){if(typeof location==='undefined')return;const name=location.pathname.split('/').pop();if(!['modeling.html','methodology.html'].includes(name))return;const id=location.hash.slice(1);if(['physics','formula-origins','origins-title','coulomb','practice'].includes(id)||id.startsWith('origin-')){location.replace(new URL('physics-relations.html'+location.search+location.hash,location.href).href);}})();
 /* Common seven-step descriptions. Does not read or modify simulation state. */
 (function(root){'use strict';
 const labels=['问题与边界','状态、输入与参数','时间、空间与随机性','作用机制与依据','方程与更新顺序','初始、边界与求解','检查、验证与 What if'];
@@ -8,11 +11,16 @@ function render(id,extra={}){
  host.replaceChildren();host.dataset.modelId=id;
  const add=(tag,text,parent=host)=>{const el=document.createElement(tag);el.textContent=text;parent.append(el);return el;};
  add('span',d.kind).className='method-kind';add('h2','怎样建立这个模型？');
- const intro=add('p','按同一套七步，从问题走到方程。');const link=add('a','查看建模方法与常见关系 →',intro);link.href='methodology.html#steps';
- const values=[d.question+' '+d.boundary,d.state+' '+d.params,d.representation,d.mechanism,d.formula,d.setup,d.check];
+ const intro=add('p','从原理、变量和关系出发，读懂编号方程，再亲手算一步。');const link=add('a','查看建模方法与常见关系 →',intro);link.href='methodology.html#steps';
  const list=add('ol','');list.className='method-local-steps';
- labels.forEach((label,i)=>{const row=add('li','',list);add('h3',label,row);add(i===4?'pre':'p',values[i],row);});
- const question=add('div','');question.className='method-whatif';add('b','What if · 先预测，再改变一个条件',question);add('p',d.whatif,question);
+ if(d.lessonSteps){
+  // Trusted, escaped HTML generated locally by build_method.py; no runtime source fetch.
+  list.innerHTML=d.lessonSteps;
+ }else{
+  const values=[d.question+' '+d.boundary,d.state+' '+d.params,d.representation,d.mechanism,d.formula,d.setup,d.check];
+  labels.forEach((label,i)=>{const row=add('li','',list);add('h3',label,row);add(i===4?'pre':'p',values[i],row);});
+  const question=add('div','');question.className='method-whatif';add('b','What if · 先预测，再改变一个条件',question);add('p',d.whatif,question);
+ }
  const relations=add('p','本模型的关系：');d.terms.forEach((term,i)=>{const a=add('a',({neighbor:'邻域',power:'距离权重',align:'方向对齐',cohere:'接近群体','target-speed':'目标跟随',threshold:'阈值',advect:'平流',diffuse:'扩散',balance:'收支',sine:'周期角度','linear-drag':'线性阻力',feedback:'反馈',nonlinear:'非线性',logistic:'密度制约',gradient:'梯度',decay:'衰减',reaction:'反应',random:'随机',phase:'相位耦合',probability:'概率',learn:'学习',kernel:'局部感知',reinforce:'强化'})[term]||term,relations);a.href='modeling.html#p-'+term;if(i<d.terms.length-1)relations.append(' · ');});
  if(extra.limits){const details=add('details','');add('summary','模型范围与其他实验的联系',details);add('p',extra.limits,details);if(extra.connection)add('p',extra.connection,details);}
  const old=document.getElementById('model-reading');
@@ -35,3 +43,10 @@ function init(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })(globalThis);
+
+/* A link into a collapsed method introduction reveals its target first. */
+(()=>{'use strict';
+ function reveal(hash){if(!hash||hash==='#')return;let id;try{id=decodeURIComponent(hash.slice(1))}catch{return}const target=document.getElementById(id);if(!target)return;const panel=target.closest('details.method-fold')||target.querySelector(':scope > details.method-fold');if(!panel)return;panel.open=true;requestAnimationFrame(()=>target.scrollIntoView({block:'start'}));}
+ function init(){if(!document.querySelector('details.method-fold'))return;document.addEventListener('click',e=>{const link=e.target.closest('a[href^="#"]');if(link)reveal(link.hash)});window.addEventListener('hashchange',()=>reveal(location.hash));reveal(location.hash);}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();

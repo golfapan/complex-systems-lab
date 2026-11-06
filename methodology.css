@@ -2,3 +2,50 @@
 .methodology{max-width:1180px}.methodology .chapter{padding:clamp(18px,3vw,32px)}.method-steps,.profile-steps,.method-local-steps{list-style:none;counter-reset:method;padding:0;margin:20px 0}.method-steps>li,.profile-steps>li,.method-local-steps>li{counter-increment:method;position:relative;padding:3px 0 12px 58px;margin:0 0 22px;border-bottom:1px solid var(--line,#536d61)}.method-steps>li:before,.profile-steps>li:before,.method-local-steps>li:before{content:counter(method,decimal-leading-zero);position:absolute;left:0;top:2px;display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:var(--soft,#254434);color:var(--green,var(--accent,#22664c));font-weight:750}.method-steps h3,.profile-steps h3,.method-local-steps h3{font-size:20px;line-height:1.5;margin:1px 0 10px}.branch-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.branch-grid article{background:var(--bg);padding:20px;border:1px solid var(--line);border-radius:12px}.branch-grid h3{font-size:20px;margin-top:0}.equation-cell{min-width:240px;white-space:pre-line;font:15px/1.8 ui-monospace,monospace}.methodology th small{display:block;margin-top:8px}.profile-card{border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:14px 0}.profile-card[hidden]{display:none}.profile-card summary{font-size:20px;font-weight:650;cursor:pointer;min-height:40px}.profile-card summary span{font-size:14px;font-weight:400;color:var(--muted);margin-left:10px}.profile-card pre,.method-local-steps pre{white-space:pre-wrap;overflow-wrap:anywhere;font:16px/1.9 ui-monospace,monospace;background:var(--bg);padding:18px;border-left:3px solid var(--green,var(--accent));border-radius:0 8px 8px 0}.profile-links{padding:12px 0}.methodology select{display:block;width:100%;max-width:580px;padding:12px;margin:10px 0;background:var(--bg);border:1px solid var(--line);border-radius:9px}.worksheet li{padding:12px;border-bottom:1px solid var(--line);line-height:2}.model-method{margin:24px 0;padding:clamp(18px,3vw,30px);background:var(--panel);border:1px solid var(--line,#688377);border-radius:16px;font-size:17px;line-height:1.85;color:var(--text);overflow-wrap:anywhere;scroll-margin-top:100px}.model-method h2{font-size:27px;margin:5px 0 12px;line-height:1.4}.model-method .method-kind{font-size:14px;color:var(--green,var(--accent));font-weight:650}.model-method>p a{margin-left:10px}.model-method .method-whatif{background:var(--soft,light-dark(#e5eee6,#254434));border-left:4px solid var(--green,var(--accent));padding:18px;border-radius:0 10px 10px 0}.model-method .method-whatif p{margin:8px 0 0}.model-method details{margin-top:18px}.model-method summary{cursor:pointer}.methodology [id^=model-]{scroll-margin-top:125px}a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--violet,#755286);outline-offset:3px}@media(max-width:650px){.branch-grid{grid-template-columns:1fr}.method-steps>li,.profile-steps>li,.method-local-steps>li{padding-left:43px}.method-steps>li:before,.profile-steps>li:before,.method-local-steps>li:before{width:32px;height:32px;font-size:14px}.model-method{font-size:17px}.method-local-steps h3{font-size:19px}.profile-card{padding:14px}.profile-card summary{font-size:19px}.model-method pre{font-size:16px}.modeling.methodology{padding:16px}.methodology .chapter{padding:18px}}@media print{nav,#model-select,#model-status,#print-method{display:none!important}.modeling{max-width:none}body{background:white;color:black}.chapter{break-inside:auto}.method-steps>li{break-inside:avoid}.profile-card[hidden]{display:none}.modeling .key{background:#eee}a{color:inherit}}
 
 .method-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:25px 0}.method-overview a{display:flex;gap:10px;align-items:center;text-decoration:none;padding:12px 14px;border:1px solid var(--line);border-radius:9px;background:var(--panel);font-size:16px}.method-overview b{color:var(--violet);font-size:18px}.boundary-map{margin:20px 0 30px}.boundary-map svg{width:100%;height:auto;color:var(--green);font:19px system-ui}.boundary-map text{fill:var(--text)}.boundary-box{fill:var(--panel);stroke:var(--green);stroke-width:2;stroke-dasharray:7 5}.state-box{fill:var(--soft)}.flow-line{fill:none;stroke:currentColor;stroke-width:2.5;marker-end:url(#flow-arrow)}.boundary-map figcaption{color:var(--muted);font-size:15px}.methodology [id^=step-]{scroll-margin-top:125px}@media(max-width:650px){.method-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.method-overview a{padding:10px;font-size:16px}.boundary-map svg{min-width:620px}.boundary-map{overflow:auto}.boundary-map figcaption{min-width:270px}}
+
+/* Two long method introductions start collapsed; later sections are unchanged. */
+.methodology .method-fold{margin:0;padding:0;border:0}
+.methodology .method-fold>summary{display:flex;align-items:baseline;gap:12px;list-style:none;cursor:pointer;color:var(--text)}
+.methodology .method-fold>summary::-webkit-details-marker{display:none}
+.methodology .method-fold>summary::before{content:"▸";flex:none;color:var(--green);font-size:22px;transition:transform .15s}
+.methodology .method-fold[open]>summary::before{transform:rotate(90deg)}
+.methodology .method-fold>summary h2{margin:0;flex:1;min-width:0}
+.methodology .method-fold .fold-hint{font-size:13px;color:var(--muted);white-space:nowrap;font-weight:400}
+.methodology .method-fold-body{padding-top:16px}
+@media(max-width:650px){.methodology .method-fold>summary{gap:8px}.methodology .method-fold .fold-hint{font-size:12px}.methodology .method-fold>summary h2{font-size:21px}}
+
+/* Detailed model lessons: native text, numbered equations, and compact mobile symbols. */
+.profile-steps,.method-local-steps{min-width:0;overflow-wrap:anywhere}
+.profile-steps>li,.method-local-steps>li{min-width:0;padding-bottom:22px}
+.profile-steps h4,.method-local-steps h4{font-size:18px;line-height:1.6;margin:24px 0 10px}
+.modeling table.lesson-symbols,.model-method table.lesson-symbols{min-width:0;max-width:100%}.modeling table.lesson-symbols td,.model-method table.lesson-symbols td{min-width:0}
+.lesson-symbols{table-layout:fixed;width:100%;border-collapse:collapse;margin:18px 0;font-size:15px;line-height:1.7}
+.lesson-symbols th,.lesson-symbols td{white-space:normal;overflow-wrap:anywhere;padding:12px 10px;vertical-align:top;border-bottom:1px solid var(--line,#536d61);text-align:left}
+.lesson-symbols th:nth-child(1){width:21%}.lesson-symbols th:nth-child(2){width:36%}.lesson-symbols th:nth-child(3){width:23%}.lesson-symbols th:nth-child(4){width:20%}
+.lesson-symbols td:first-child{font-family:ui-monospace,monospace;color:var(--green,var(--accent));font-weight:650}
+.lesson-defaults{padding:10px 14px;border:1px solid var(--line);border-radius:8px;font-size:15px}
+.lesson-defaults summary{cursor:pointer;font-size:16px;font-weight:600}
+.lesson-defaults p{margin:10px 0 0}
+.lesson-derive,.lesson-sequence,.lesson-example ol{padding-left:23px}
+.lesson-derive>li,.lesson-sequence>li,.lesson-example li,.lesson-checks>li{margin:12px 0;padding-left:5px;line-height:1.85}
+.lesson-derive p,.lesson-checks p,.lesson-sources p{margin:6px 0 14px}
+.lesson-equations{margin:20px 0;padding:12px 15px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.lesson-equation{display:grid;grid-template-columns:48px minmax(0,1fr);align-items:baseline;gap:8px;padding:12px 0;border-bottom:1px solid var(--line)}
+.lesson-equation:last-child{border-bottom:0}.lesson-eq-number{font-weight:700;color:var(--green,var(--accent));font-size:16px}
+.lesson-equation .lesson-eq-formula{margin:0;padding:4px 0;border:0;background:none;border-radius:0;font:16px/2 ui-monospace,monospace;white-space:normal;overflow-wrap:anywhere;min-width:0}
+.lesson-readout dt{font-weight:700;color:var(--green,var(--accent));margin:20px 0 5px}.lesson-readout dd{margin:0 0 18px;padding-left:15px;border-left:2px solid var(--line)}
+.lesson-example{margin-top:22px;padding:18px 22px;border:1px solid var(--line);border-left:4px solid var(--green,var(--accent));border-radius:0 10px 10px 0;background:var(--bg)}
+.lesson-example h4{margin-top:0}.lesson-source-date{font-size:14px;color:var(--muted)}
+.lesson-sources,.lesson-checks{padding-left:23px}.lesson-sources>li{margin-bottom:20px}
+@media(max-width:650px){
+ .profile-steps>li,.method-local-steps>li{padding-left:0;padding-top:44px}
+ .profile-steps>li:before,.method-local-steps>li:before{top:2px}
+ .lesson-symbols,.lesson-symbols tbody{display:block;width:100%}.lesson-symbols thead{display:none}
+ .lesson-symbols tr{display:block;padding:10px 0;border-bottom:1px solid var(--line)}
+ .lesson-symbols td{display:block;padding:4px 0;border:0;font-size:15px}
+ .lesson-symbols td::before{content:attr(data-label)'：';display:inline;font-family:system-ui;font-weight:600;color:var(--muted)}
+ .lesson-symbols td:first-child{font-size:17px}.lesson-symbols td:first-child::before{display:none}
+ .lesson-equations{padding:8px 10px}.lesson-equation{grid-template-columns:36px minmax(0,1fr);gap:3px}
+ .lesson-equation .lesson-eq-formula{font-size:15px;line-height:2}.lesson-eq-number{font-size:14px}
+ .lesson-example{padding:15px}.lesson-readout dd{padding-left:10px}
+}

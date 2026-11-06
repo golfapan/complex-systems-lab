@@ -1,3 +1,6 @@
+
+/* Previously embedded physical chapters now have a dedicated page. */
+(function(){if(typeof location==='undefined')return;const name=location.pathname.split('/').pop();if(!['modeling.html','methodology.html'].includes(name))return;const id=location.hash.slice(1);if(['physics','formula-origins','origins-title','coulomb','practice'].includes(id)||id.startsWith('origin-')){location.replace(new URL('physics-relations.html'+location.search+location.hash,location.href).href);}})();
 /* Standalone relationship comparisons, not a new physics simulation. */
 (function(){'use strict';
 function value(kind,s){if(!Number.isFinite(s)||s<=0)throw new RangeError('Positive finite ratio required.');switch(kind){case'inverse':return 1/s;case'inverse2':return 1/(s*s);case'exp':return Math.exp(1-s);case'linear':return s;case'quadratic':return s*s;default:throw new RangeError('Unknown relationship');}}

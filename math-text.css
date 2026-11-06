@@ -1,0 +1,22 @@
+/* Local HTML text, not an equation object or externally rendered image. */
+.text-math { white-space: nowrap; font-style: inherit; }
+.math-integral { display: inline-flex; align-items: center; vertical-align: middle; margin-right: .04em; line-height: 1; }
+.math-integral-term { white-space: nowrap; }
+.math-differential { margin-left: .13em; white-space: nowrap; }
+.math-relation { display: inline-block; margin-inline: .28em; }
+.math-integral-sign { font-family: 'STIX Two Math', 'Cambria Math', 'Times New Roman', serif; font-size: 1.9em; font-weight: 400; line-height: 1; }
+.math-integral-limits, .math-script-pair { display: inline-grid; grid-template-rows: 1fr 1fr; align-items: center; margin-left: .04em; }
+.math-integral-limits { min-height: 1.8em; }
+.math-integral-limits > sup, .math-integral-limits > sub,
+.math-script-pair > sup, .math-script-pair > sub { position: static; vertical-align: baseline; font-size: .7em; line-height: 1.1; text-align: left; }
+.math-integral-limits > sup, .math-script-pair > sup { grid-row: 1; }
+.math-integral-limits > sub, .math-script-pair > sub { grid-row: 2; }
+.math-script-pair { vertical-align: middle; min-height: 1.45em; }
+.math-script > sup, .math-script > sub { font-size: .75em; line-height: 0; }
+/* Keep existing native formulas inside their reading column on narrow screens. */
+@media (max-width: 800px) {
+  .lesson-grid { grid-template-columns: minmax(0, 1fr); }
+  .lesson-grid > div, .lesson-grid > aside, .formula-card { min-width: 0; }
+  .formula-stack { grid-template-columns: minmax(0, 1fr); }
+  .equation-scroll { max-width: 100%; overflow-x: auto; }
+}
